@@ -1,0 +1,186 @@
+<Window x:Class="Tpv.Menu"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+        xmlns:local="clr-namespace:Tpv"
+        mc:Ignorable="d" 
+        Title="Menua" Height="450" Width="800"
+        WindowState="Maximized"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        Background="#EEEEEE"
+        UseLayoutRounding="True">
+    <Window.Resources>
+        <Style TargetType="{x:Type Button}" x:Key="MenuBotoia">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="Margin" Value="20"/>
+            <Setter Property="Background" Value="#E9C4C7"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border CornerRadius="20"
+                                Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#B92732"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#B92732"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="{x:Type Button}" x:Key="MenukoBotoiakIragarri" BasedOn="{StaticResource MenuBotoia}">
+            <Setter Property="Background" Value="#E9C4C7"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#B92732"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#B92732"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid Background="#373F47" Grid.Row="0" MouseLeftButtonDown="Titulua_EzkerrekoBotoiaKlik">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                <Button Background="Transparent" BorderThickness="0" Padding="5" Cursor="Hand" Click="Txat_Klik">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Grid>
+                                <Rectangle Width="35" Height="35" Fill="White" Margin="3">
+                                    <Rectangle.OpacityMask>
+                                        <ImageBrush ImageSource="Irudiak/txat.png"/>
+                                    </Rectangle.OpacityMask>
+                                </Rectangle>
+                            </Grid>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
+                <Button Grid.Column="0" Background="Transparent" BorderThickness="0" Padding="5" Cursor="Hand" Click="Profil_Klik" HorizontalAlignment="Left">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Grid>
+                                <Rectangle x:Name="Ikonoa" Width="35" Height="35" Fill="#EEEEEE" Margin="3">
+                                    <Rectangle.OpacityMask>
+                                        <ImageBrush ImageSource="Irudiak/usuario.png"/>
+                                    </Rectangle.OpacityMask>
+                                </Rectangle>
+                            </Grid>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#8CABBE"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="Background" Value="#8CABBE"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <Button.ToolTip>
+                        <Border Background="#EEEEEE" CornerRadius="5" Padding="3">
+                            <TextBlock Text="Saioa Itxi"
+                       Foreground="#373F47"
+                       FontSize="14"
+                       FontWeight="SemiBold"/>
+                        </Border>
+                    </Button.ToolTip>
+                </Button>
+                <Button Content="_" Width="45" Height="45" Margin="4" Click="Minimizatu_Klik" Background="Transparent" Foreground="White" FontSize="22" FontWeight="Bold"/>
+                <Button Content="X" Width="45" Height="45" Margin="4" Click="Itxi_Klik" Background="Transparent" Foreground="White" FontSize="22" FontWeight="Bold"/>
+            </StackPanel>
+        </Grid>
+            
+        <Grid Grid.Row="1" Margin="20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0"
+                    Style="{StaticResource MenuBotoia}"
+                    Click="Eskaerak_Klik">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="20">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Rectangle Width="60" Height="60" Fill="White" Margin="0,0,0,10">
+                                    <Rectangle.OpacityMask>
+                                        <ImageBrush ImageSource="Irudiak/eskaera.png"/>
+                                    </Rectangle.OpacityMask>
+                                </Rectangle>
+                                <TextBlock Text="Eskaerak" Foreground="White" FontSize="24" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+
+            <Button Grid.Column="1"
+                    Style="{StaticResource MenuBotoia}"
+                    Click="Fakturak_Klik">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="20">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Rectangle Width="60" Height="60" Fill="White" Margin="0,0,0,10">
+                                    <Rectangle.OpacityMask>
+                                        <ImageBrush ImageSource="Irudiak/Faktura.png"/>
+                                    </Rectangle.OpacityMask>
+                                </Rectangle>
+                                <TextBlock Text="Fakturak" Foreground="White" FontSize="24" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+
+            <Button Grid.Column="2"
+                    Style="{StaticResource MenuBotoia}"
+                    Click="Erreserbak_Klik">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="20">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Rectangle Width="60" Height="60" Fill="White" Margin="0,0,0,10">
+                                    <Rectangle.OpacityMask>
+                                        <ImageBrush ImageSource="Irudiak/Mesa.png"/>
+                                    </Rectangle.OpacityMask>
+                                </Rectangle>
+                                <TextBlock Text="Erreserbak" Foreground="White" FontSize="24" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+        </Grid>
+    </Grid>
+</Window>

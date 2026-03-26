@@ -1,0 +1,189 @@
+<Window x:Class="Tpv.FakturakPantaila"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Title="Fakturak"
+             WindowState="Maximized"
+             WindowStyle="None"
+             ResizeMode="CanResize"
+             Background="#F5F5F5">
+    <Window.Resources>
+        <Style x:Key="IkusiBotoia" TargetType="Button">
+            <Setter Property="Background" Value="LightGreen"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="5">
+                            <Grid>
+                                <Rectangle Width="20"
+                                            Height="20"
+                                            Fill="White">
+                                    <Rectangle.OpacityMask>
+                                        <ImageBrush ImageSource="Irudiak/ikusi.png"/>
+                                    </Rectangle.OpacityMask>
+                                </Rectangle>
+                            </Grid>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#90EE90"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#32CD32"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid Background="#373F47" Grid.Row="0" MouseLeftButtonDown="Titulua_EzkerrekoBotoiaKlik">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,3,0,0">
+                <Button Grid.Column="0" Background="Transparent" Margin="4" BorderThickness="0" Cursor="Hand" Click="Atzera_Klik" HorizontalAlignment="Left">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Grid>
+                                <Rectangle x:Name="Gezia_ezkerrera" Width="35" Height="35" Fill="#EEEEEE" Margin="3">
+                                    <Rectangle.OpacityMask>
+                                        <ImageBrush ImageSource="Irudiak/gezia.png"/>
+                                    </Rectangle.OpacityMask>
+                                </Rectangle>
+                            </Grid>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#E9C4C7"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="Background" Value="#E9C4C7"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                <Button Background="Transparent" BorderThickness="0" Padding="5" Cursor="Hand" Click="Txat_Klik">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Grid>
+                                <Rectangle Width="35" Height="35" Fill="White" Margin="3">
+                                    <Rectangle.OpacityMask>
+                                        <ImageBrush ImageSource="Irudiak/txat.png"/>
+                                    </Rectangle.OpacityMask>
+                                </Rectangle>
+                            </Grid>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
+                <Button Grid.Column="0"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Cursor="Hand"
+                    Click="Profila_Klik"
+                    Margin="4"
+                    HorizontalAlignment="Left">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Grid>
+                                <Rectangle Width="35"
+                                    Height="35"
+                                    Fill="#EEEEEE">
+                                    <Rectangle.OpacityMask>
+                                        <ImageBrush ImageSource="Irudiak/usuario.png"/>
+                                    </Rectangle.OpacityMask>
+                                </Rectangle>
+                            </Grid>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#E9C4C7"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="Background" Value="#E9C4C7"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <Button.ToolTip>
+                        <Border Background="#EEEEEE" CornerRadius="5" Padding="3">
+                            <TextBlock Text="Saioa Itxi"
+                                       Foreground="#373F47"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"/>
+                        </Border>
+                    </Button.ToolTip>
+                </Button>
+                <Button Content="_" Width="45" Height="45" Margin="4" Click="Minimizatu_Klik" Background="Transparent" Foreground="White" FontSize="22" FontWeight="Bold"/>
+                <Button Content="X" Width="45" Height="45" Margin="4" Click="Itxi_Klik" Background="Transparent" Foreground="White" FontSize="22" FontWeight="Bold"/>
+            </StackPanel>
+        </Grid>
+        <ScrollViewer Grid.Row="1" Margin="10,60,10,10" VerticalScrollBarVisibility="Auto">
+            <ItemsControl x:Name="dgFakturak">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Width="220" Height="220" Margin="15" Background="#FCFEFC" CornerRadius="2" Padding="15" BorderBrush="#E9C4C7" BorderThickness="1">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="5" ShadowDepth="3" Opacity="0.2"/>
+                            </Border.Effect>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                
+                                <Border Grid.Row="0" BorderBrush="#E9C4C7" BorderThickness="0,0,0,2" Padding="0,0,0,10" Margin="0,0,0,10">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <TextBlock Text="Faktura: " FontWeight="Bold" FontSize="18" Foreground="#373F47"/>
+                                        <TextBlock Text="{Binding Id}" FontWeight="Bold" FontSize="18" Foreground="#B92732"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <StackPanel Grid.Row="1" VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                                        <TextBlock Text="Zerbitzua: " FontWeight="SemiBold" Foreground="#555"/>
+                                        <TextBlock Text="{Binding ZerbitzuaId}" Foreground="#333"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                                        <TextBlock Text="Prezioa: " FontWeight="SemiBold" Foreground="#555"/>
+                                        <TextBlock Text="{Binding PrezioTotala, StringFormat='{}{0}€'}" Foreground="#333" FontWeight="Bold" FontSize="16"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <Button Grid.Row="2"
+                                        Width="50" Height="50"
+                                        Style="{StaticResource IkusiBotoia}"
+                                        Click="BtnIkusiFaktura_Klik"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Bottom"
+                                        ToolTip="Ikusi PDFa">
+                                </Button>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</Window>
