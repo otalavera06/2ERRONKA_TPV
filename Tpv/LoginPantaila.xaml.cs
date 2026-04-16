@@ -74,7 +74,7 @@ namespace Tpv
             {
                 using (var client = new HttpClient())
                 {
-                    var url = "http://localhost:5005/api/langileak/login";
+                    var url = $"{ApiConfig.ApiBaseUrl}/langileak/login";
                     var json = JsonConvert.SerializeObject(loginRequest);
                     var content = new StringContent(json, Encoding.UTF8, "application/json");
 

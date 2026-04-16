@@ -188,6 +188,18 @@
                              Height="250"
                              FontSize="16"
                              Margin="0,0,0,10"/>
+                    <TextBlock x:Name="txtUnekoTotala"
+                               Text="Guztira: 0,00€"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               Foreground="#373F47"
+                               Margin="0,0,0,4"/>
+                    <TextBlock x:Name="txtOdooDeskontua"
+                               Text="Odoo: ez dago deskonturik aplikatuta"
+                               FontSize="14"
+                               Foreground="#666666"
+                               Margin="0,0,0,10"
+                               TextWrapping="Wrap"/>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                         <Button Style="{StaticResource EskaerakBotoia}"
                                 Width="140"
@@ -213,6 +225,19 @@
                                     </Rectangle.OpacityMask>
                                 </Rectangle>
                                 <TextBlock Text="Kendu" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource EskaerakBotoia}"
+                                Width="160"
+                                Height="100"
+                                Click="BtnOdooDeskontua_Klik">
+                            <StackPanel>
+                                <Rectangle Width="40" Height="40" Fill="White" Margin="0,0,0,5" HorizontalAlignment="Center">
+                                    <Rectangle.OpacityMask>
+                                        <ImageBrush ImageSource="Irudiak/eskaera.png"/>
+                                    </Rectangle.OpacityMask>
+                                </Rectangle>
+                                <TextBlock Text="Odoo deskontua" HorizontalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                         <Button Style="{StaticResource EskaerakBotoia}"

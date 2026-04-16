@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Tpv.DTO;
+using Newtonsoft.Json.Linq;
 
 namespace Tpv
 {
@@ -91,7 +92,7 @@ namespace Tpv
         {
             using (var client = new HttpClient())
             {
-                client.BaseAddress = new Uri("http://localhost:5005/api/");
+                client.BaseAddress = new Uri(ApiConfig.ApiBaseUrl + "/");
                 var response = await client.GetAsync("fakturak");
                 if (!response.IsSuccessStatusCode)
                 {
@@ -100,7 +101,42 @@ namespace Tpv
                 }
 
                 var json = await response.Content.ReadAsStringAsync();
-                var fakturak = JsonConvert.DeserializeObject<List<FakturaDto>>(json);
+                var arr = JsonConvert.DeserializeObject<JArray>(json);
+                var fakturak = new List<FakturaDto>();
+                foreach (var it in arr ?? new JArray())
+                {
+                    decimal prezio = 0m;
+                    var prezioToken = it["PrezioTotala"] ?? it["prezioTotala"] ?? it["prezio_totala"];
+                    if (prezioToken != null)
+                    {
+                        if (prezioToken.Type == JTokenType.Float || prezioToken.Type == JTokenType.Integer)
+                        {
+                            prezio = prezioToken.Value<decimal>();
+                        }
+                        else
+                        {
+                            decimal.TryParse(prezioToken.ToString(), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out prezio);
+                        }
+                    }
+
+                    var sortutaToken = it["Sortuta"] ?? it["sortuta"];
+                    bool sortuta = false;
+                    if (sortutaToken != null)
+                    {
+                        sortuta = sortutaToken.Type == JTokenType.Boolean
+                            ? sortutaToken.Value<bool>()
+                            : sortutaToken.Value<int>() != 0;
+                    }
+
+                    fakturak.Add(new FakturaDto
+                    {
+                        Id = (it["Id"] ?? it["id"])?.Value<int>() ?? 0,
+                        ZerbitzuaId = (it["ZerbitzuaId"] ?? it["zerbitzuaId"] ?? it["zerbitzua_id"])?.Value<int>() ?? 0,
+                        PrezioTotala = prezio,
+                        Sortuta = sortuta,
+                        Path = (it["Path"] ?? it["path"])?.ToString() ?? string.Empty
+                    });
+                }
                 dgFakturak.ItemsSource = fakturak;
             }
         }
@@ -109,18 +145,12 @@ namespace Tpv
         {
             if ((sender as Button)?.DataContext is FakturaDto faktura)
             {
-                var url = $"http://localhost:5005/api/fakturak/{faktura.Id}/pdf";
+                var url = !string.IsNullOrWhiteSpace(faktura.Path)
+                    ? $"{ApiConfig.BaseUrl}{faktura.Path}"
+                    : $"{ApiConfig.ApiBaseUrl}/fakturak/{faktura.Id}/pdf";
 
                 try
                 {
-                    using (var client = new HttpClient())
-                    {
-                        var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
-                        if (!response.IsSuccessStatusCode)
-                        {
-                            MessageBox.Show($"Errorea: {response.StatusCode}", "Errorea", MessageBoxButton.OK, MessageBoxImage.Warning);
-                        }
-                    }
                     System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
                     {
                         FileName = url,

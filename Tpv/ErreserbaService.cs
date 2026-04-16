@@ -9,7 +9,7 @@ namespace Tpv.Services
 {
     public class ErreserbaService
     {
-        private const string BaseUrl = "http://localhost:5005/api/erreserbak";
+        private static string BaseUrl => ApiConfig.ApiBaseUrl + "/erreserbak";
 
         public async Task<bool> EguneratuErreserba(int mahaiaId, DateTime data, bool mota, ErreserbakSortuDto dto)
         {

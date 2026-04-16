@@ -76,20 +76,27 @@ namespace Tpv
             }
 
             var dataBerria = dataPicker.SelectedDate ?? _eguna;
+            var mugaOrdua = _mota ? new TimeSpan(13, 0, 0) : new TimeSpan(20, 0, 0);
+            var hautatutakoUnea = dataBerria.Date + mugaOrdua;
+            if (hautatutakoUnea <= DateTime.Now)
+            {
+                MessageBox.Show("Ezin da erreserba eguneratu jada igaro den txanda batera.", "Errorea", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
             var dto = new ErreserbakSortuDto
             {
                 Data = dataBerria,
                 Mota = _mota,
                 MahaiakId = _mahaiaId,
-                ErabiltzaileakId = 1
+                ErabiltzaileakId = null
             };
 
             try
             {
                 using (var client = new HttpClient { Timeout = TimeSpan.FromSeconds(10) })
                 {
-                    var url = $"http://localhost:5005/api/erreserbak/mahaia/{_mahaiaId}?data={_eguna:yyyy-MM-dd}&mota={_motaOriginala.ToString().ToLower()}";
+                    var url = $"{ApiConfig.ApiBaseUrl}/erreserbak/mahaia/{_mahaiaId}?data={_eguna:yyyy-MM-dd}&mota={_motaOriginala.ToString().ToLower()}";
                     var json = JsonConvert.SerializeObject(dto);
                     var content = new StringContent(json, Encoding.UTF8, "application/json");
                     var erantzuna = await client.PutAsync(url, content);
@@ -119,7 +126,7 @@ namespace Tpv
                 return;
             }
 
-            var url = $"http://localhost:5005/api/erreserbak/mahaia/{_mahaiaId}?data={_eguna:yyyy-MM-dd}&mota={_motaOriginala.ToString().ToLower()}";
+            var url = $"{ApiConfig.ApiBaseUrl}/erreserbak/mahaia/{_mahaiaId}?data={_eguna:yyyy-MM-dd}&mota={_motaOriginala.ToString().ToLower()}";
             using (var client = new HttpClient())
             {
                 var erantzuna = await client.DeleteAsync(url);

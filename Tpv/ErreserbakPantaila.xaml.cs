@@ -90,7 +90,7 @@ namespace Tpv
 
             using (var client = new HttpClient())
             {
-                var url = $"http://localhost:5005/api/erreserbak?data={eguna:yyyy-MM-dd}&mota={mota.ToString().ToLower()}";
+                var url = $"{ApiConfig.ApiBaseUrl}/erreserbak?data={eguna:yyyy-MM-dd}&mota={mota.ToString().ToLower()}";
 
                 var erantzuna = await client.GetAsync(url);
                 var json = await erantzuna.Content.ReadAsStringAsync();
@@ -122,7 +122,7 @@ namespace Tpv
                 if (mota && orain > new TimeSpan(13, 0, 0))
                     return "Bazkarirako erreserbak 13:00ak arte egin daitezke.";
 
-                if (mota && orain > new TimeSpan(20, 0, 0))
+                if (!mota && orain > new TimeSpan(20, 0, 0))
                     return "Afariarako erreserbak 20:00ak arte egin daitezke.";
             }
             return null;
@@ -139,7 +139,7 @@ namespace Tpv
 
                 if (mota && orain > new TimeSpan(13, 0, 0))
                     return false;
-                if (mota && orain > new TimeSpan(20, 0, 0))
+                if (!mota && orain > new TimeSpan(20, 0, 0))
                     return false;
             }
             return true;
@@ -217,7 +217,7 @@ namespace Tpv
                     Data = eguna,
                     Mota = mota,
                     MahaiakId = mahaiaId,
-                    ErabiltzaileakId = 1
+                    ErabiltzaileakId = null
                 };
 
                 using (var client = new HttpClient())
@@ -225,7 +225,7 @@ namespace Tpv
                     var json = JsonConvert.SerializeObject(dto);
                     var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                    var erantzuna = await client.PostAsync("http://localhost:5005/api/erreserbak", content);
+                    var erantzuna = await client.PostAsync($"{ApiConfig.ApiBaseUrl}/erreserbak", content);
 
 
                     var result = await erantzuna.Content.ReadAsStringAsync();
