@@ -1,4 +1,4 @@
-﻿using NHibernate.Linq;
+using NHibernate.Linq;
 using System;
 using System.Drawing;
 using System.IO;
@@ -9,21 +9,21 @@ using Tpv.Modeloak.Tpv.Modeloak;
 
 namespace Tpv
 {
-    public partial class Form1 : Form
+    public partial class Diseinua : Form
     {
         private Panel panelContainer;
         private Panel panelLogo;
         private Panel panelLogin;
         private PictureBox pictureBoxLogo;
 
-        private readonly Color KoloreGorriHandia = ColorTranslator.FromHtml("#B92732"); 
+        private readonly Color KoloreGorriHandia = ColorTranslator.FromHtml("#B92732");
         private readonly Color KoloreGorriArgia = ColorTranslator.FromHtml("#E9C4C7");
         private readonly Color KoloreMarkoIluna = ColorTranslator.FromHtml("#373F47");
         private readonly Color KoloreBerdea = ColorTranslator.FromHtml("#BBC7A4");
         private readonly Color KoloreGorriIluna = ColorTranslator.FromHtml("#B5424B");
-        private readonly Color KoloreLogoZuria = ColorTranslator.FromHtml("#FCFEFC"); 
+        private readonly Color KoloreLogoZuria = ColorTranslator.FromHtml("#FCFEFC");
 
-        public Form1()
+        public Diseinua()
         {
             InitializeComponent();
 
@@ -31,7 +31,7 @@ namespace Tpv
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.StartPosition = FormStartPosition.CenterScreen;
-            this.AcceptButton = button1;   
+            this.AcceptButton = button1;
             this.BackColor = KoloreMarkoIluna;
             this.Padding = new Padding(20);
 
@@ -39,11 +39,9 @@ namespace Tpv
             EstilatuKontrolak();
             AntolatuLoginKontrolak();
 
-   
             this.Resize += (s, e) => AntolatuLoginKontrolak();
         }
 
-       
         private void SortuPanelakEtaLogoa()
         {
             panelContainer = new Panel
@@ -88,12 +86,11 @@ namespace Tpv
             panelLogin.Controls.Add(button1);
         }
 
-      
         private void KargatuLogoa()
         {
             try
             {
-                string fitxategiIzena = "sushineli.png";  
+                string fitxategiIzena = "sushineli.png";
 
                 string ruta = Path.Combine(Application.StartupPath, fitxategiIzena);
 
@@ -112,7 +109,6 @@ namespace Tpv
             }
         }
 
-     
         private void EstilatuKontrolak()
         {
             label1.Text = "Erabiltzailea:";
@@ -130,7 +126,7 @@ namespace Tpv
             textBox2.BorderStyle = BorderStyle.FixedSingle;
             textBox1.Font = new Font("Segoe UI", 10, FontStyle.Regular);
             textBox2.Font = new Font("Segoe UI", 10, FontStyle.Regular);
-            textBox2.UseSystemPasswordChar = true; 
+            textBox2.UseSystemPasswordChar = true;
 
             button1.Text = "Saioa hasi";
             button1.BackColor = KoloreMarkoIluna;
@@ -138,11 +134,8 @@ namespace Tpv
             button1.FlatStyle = FlatStyle.Flat;
             button1.FlatAppearance.BorderSize = 0;
             button1.Font = new Font("Segoe UI", 10, FontStyle.Bold);
-
-           
         }
 
-   
         private void AntolatuLoginKontrolak()
         {
             if (panelLogin == null) return;
@@ -165,7 +158,6 @@ namespace Tpv
             textBox1.Location = new Point(hasieraX + labelZabalera + 10, hasieraY - 3);
             textBox1.Size = new Size(textBoxZabalera, kontrolAltuera);
 
-           
             int y2 = hasieraY + kontrolAltuera + tarteBertikala;
             label3.Location = new Point(hasieraX, y2);
             textBox2.Location = new Point(hasieraX + labelZabalera + 10, y2 - 3);
@@ -176,7 +168,6 @@ namespace Tpv
                 hasieraX + labelZabalera + 10 + (textBoxZabalera - button1.Width),
                 y2 + kontrolAltuera + 20
             );
-
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -219,7 +210,6 @@ namespace Tpv
                 GarbituEremuak();
             }
         }
-        
 
         private void button2_Click(object sender, EventArgs e)
         {
@@ -233,8 +223,7 @@ namespace Tpv
             textBox1.Focus();
         }
 
-
-        private void Form1_Load(object sender, EventArgs e) { }
+        private void Diseinua_Load(object sender, EventArgs e) { }
         private void label1_Click(object sender, EventArgs e) { }
         private void label3_Click(object sender, EventArgs e) { }
     }

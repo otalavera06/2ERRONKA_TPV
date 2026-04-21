@@ -32,6 +32,9 @@ namespace Tpv.Mapeoak
             Map(x => x.baimena)
                 .Column("baimena")
                 .Not.Nullable();
+            Map(x => x.chatBaimena)
+                .Column("chat_baimena")
+                .Not.Nullable();
         }
     }
 }

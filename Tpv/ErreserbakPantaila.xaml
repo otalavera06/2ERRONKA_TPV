@@ -5,21 +5,25 @@
             WindowState="Maximized"
             WindowStyle="None"
             ResizeMode="CanResize"
-            Background="#F5F5F5">
+            Background="{StaticResource BrandSoft}">
     <Window.Resources>
         <Style x:Key="MahaiaStyle" TargetType="Button">
             <Setter Property="Width" Value="300"/>
             <Setter Property="Height" Value="160"/>
             <Setter Property="FontSize" Value="24"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Background" Value="LightGray"/>
-            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="{StaticResource BrandSurface}"/>
+            <Setter Property="Foreground" Value="{StaticResource BrandBlack}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BrandChampagne}"/>
             <Setter Property="Margin" Value="12"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="20">
                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -31,8 +35,8 @@
         </Style>
 
         <Style x:Key="ErreserbaBotoia" TargetType="Button">
-            <Setter Property="Background" Value="#E9C4C7"/>
-            <Setter Property="Foreground" Value="#373F47"/>
+            <Setter Property="Background" Value="{StaticResource BrandGold}"/>
+            <Setter Property="Foreground" Value="{StaticResource BrandBlack}"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="FontSize" Value="20"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -43,7 +47,7 @@
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}" CornerRadius="10">
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <Rectangle Width="30" Height="30" Fill="White" Margin="0,0,10,0">
+                                <Rectangle Width="30" Height="30" Fill="{StaticResource BrandBlack}" Margin="0,0,10,0">
                                     <Rectangle.OpacityMask>
                                         <ImageBrush ImageSource="Irudiak/sushi.png"/>
                                     </Rectangle.OpacityMask>
@@ -56,10 +60,10 @@
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#B92732"/>
+                    <Setter Property="Background" Value="{StaticResource BrandChampagne}"/>
                 </Trigger>
                 <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="#B92732"/>
+                    <Setter Property="Background" Value="#B88C35"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -69,7 +73,7 @@
             <RowDefinition Height="60"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Grid Background="#373F47" Grid.Row="0" MouseLeftButtonDown="Titulua_EzkerrekoBotoiaKlik">
+        <Grid Background="{StaticResource BrandBlack}" Grid.Row="0" MouseLeftButtonDown="Titulua_EzkerrekoBotoiaKlik">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition Width="Auto"/>
@@ -79,7 +83,7 @@
                     <Button.Template>
                         <ControlTemplate TargetType="Button">
                             <Grid>
-                                <Rectangle x:Name="Gezia_ezkerrera" Width="35" Height="35" Fill="#EEEEEE" Margin="3">
+                                <Rectangle x:Name="Gezia_ezkerrera" Width="35" Height="35" Fill="{StaticResource BrandIvory}" Margin="3">
                                     <Rectangle.OpacityMask>
                                         <ImageBrush ImageSource="Irudiak/gezia.png"/>
                                     </Rectangle.OpacityMask>
@@ -91,10 +95,10 @@
                         <Style TargetType="Button">
                             <Style.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#E9C4C7"/>
+                                    <Setter Property="Background" Value="#2C2415"/>
                                 </Trigger>
                                 <Trigger Property="IsPressed" Value="True">
-                                    <Setter Property="Background" Value="#E9C4C7"/>
+                                    <Setter Property="Background" Value="#2C2415"/>
                                 </Trigger>
                             </Style.Triggers>
                         </Style>
@@ -104,7 +108,7 @@
                     <Button.Template>
                         <ControlTemplate TargetType="Button">
                             <Grid>
-                                <Rectangle Width="35" Height="35" Fill="White" Margin="3">
+                                <Rectangle Width="35" Height="35" Fill="{StaticResource BrandGold}" Margin="3">
                                     <Rectangle.OpacityMask>
                                         <ImageBrush ImageSource="Irudiak/txat.png"/>
                                     </Rectangle.OpacityMask>
@@ -127,7 +131,7 @@
                             <Grid>
                                 <Rectangle Width="35"
                             Height="35"
-                            Fill="#EEEEEE">
+                            Fill="{StaticResource BrandIvory}">
                                     <Rectangle.OpacityMask>
                                         <ImageBrush ImageSource="Irudiak/usuario.png"/>
                                     </Rectangle.OpacityMask>
@@ -139,25 +143,25 @@
                         <Style TargetType="Button">
                             <Style.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#E9C4C7"/>
+                                    <Setter Property="Background" Value="#2C2415"/>
                                 </Trigger>
                                 <Trigger Property="IsPressed" Value="True">
-                                    <Setter Property="Background" Value="#E9C4C7"/>
+                                    <Setter Property="Background" Value="#2C2415"/>
                                 </Trigger>
                             </Style.Triggers>
                         </Style>
                     </Button.Style>
                     <Button.ToolTip>
-                        <Border Background="#EEEEEE" CornerRadius="5" Padding="3">
+                        <Border Background="{StaticResource BrandSurface}" CornerRadius="5" Padding="3">
                             <TextBlock Text="Saioa Itxi"
-                               Foreground="#373F47"
+                               Foreground="{StaticResource BrandBlack}"
                                FontSize="14"
                                FontWeight="SemiBold"/>
                         </Border>
                     </Button.ToolTip>
                 </Button>
-                <Button Content="_" Width="45" Height="45" Margin="4" Click="Minimizatu_Klik" Background="Transparent" Foreground="White" FontSize="22" FontWeight="Bold"/>
-                <Button Content="X" Width="45" Height="45" Margin="4" Click="Itxi_Klik" Background="Transparent" Foreground="White" FontSize="22" FontWeight="Bold"/>
+                <Button Content="_" Width="45" Height="45" Margin="4" Click="Minimizatu_Klik" Background="Transparent" Foreground="{StaticResource BrandIvory}" FontSize="22" FontWeight="Bold"/>
+                <Button Content="X" Width="45" Height="45" Margin="4" Click="Itxi_Klik" Background="Transparent" Foreground="{StaticResource BrandIvory}" FontSize="22" FontWeight="Bold"/>
             </StackPanel>
         </Grid>
 
@@ -168,7 +172,7 @@
             </Grid.ColumnDefinitions>
 
             <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
-                <Canvas x:Name="MahaiaGrid" Background="#F5F5F5F5">
+                <Canvas x:Name="MahaiaGrid" Background="Transparent">
                     <Button x:Name="Mahaia1" Content="Mahaia 1" Width="350" Height="125" Canvas.Left="0" Canvas.Top="0" Click="Mahaia_Klik" Style="{StaticResource MahaiaStyle}"/>
                     <Button x:Name="Mahaia2" Content="Mahaia 2" Width="250" Height="200" Canvas.Left="0" Canvas.Top="200" Click="Mahaia_Klik" Style="{StaticResource MahaiaStyle}"/>
                     <Button x:Name="Mahaia3" Content="Mahaia 3" Width="300" Height="200" Canvas.Left="0" Canvas.Top="500" Click="Mahaia_Klik" Style="{StaticResource MahaiaStyle}"/>
@@ -187,7 +191,9 @@
                             VerticalAlignment="Center"
                             HorizontalAlignment="Center"
                             Margin="10">
-                    <Border Background="#EEEEEE"
+                    <Border Background="{StaticResource BrandSurface}"
+                            BorderBrush="{StaticResource BrandChampagne}"
+                            BorderThickness="1"
                             CornerRadius="12"
                             Margin="0,0,150,200"
                             HorizontalAlignment="Center">

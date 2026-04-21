@@ -15,11 +15,11 @@ using System.Windows.Shapes;
 
 namespace Tpv
 {
-    public partial class Aplikazioa : Application
+    public partial class App : Application
     {
-        public Aplikazioa()
+        public App()
         {
-            
+            System.Windows.Application.LoadComponent(this, new System.Uri("App.xaml", System.UriKind.Relative));
         }
     }
 }

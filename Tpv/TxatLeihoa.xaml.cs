@@ -1,10 +1,13 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -14,6 +17,10 @@ namespace Tpv
 {
     public partial class TxatLeihoa : Window
     {
+        private const string ChatHost = "127.0.0.1";
+        private const int ChatPort = 5555;
+        private static readonly TimeSpan ConnectTimeout = TimeSpan.FromSeconds(5);
+
         private TcpClient socketa;
         private StreamReader irakurlea;
         private StreamWriter idazlea;
@@ -24,32 +31,44 @@ namespace Tpv
         public TxatLeihoa()
         {
             InitializeComponent();
-            InitializeContacts();
+            Contacts = new ObservableCollection<Contact>(CreateDefaultContacts());
             lstContacts.ItemsSource = Contacts;
-            
-            KonektatuZerbitzaria();
+
+            Loaded += async (_, __) => await KonektatuZerbitzariaAsync();
         }
 
-        private void InitializeContacts()
+        private IEnumerable<Contact> CreateDefaultContacts()
         {
-            Contacts = new ObservableCollection<Contact>
+            return Enumerable.Range(1, 5).Select(mahaiaId => new Contact
             {
-                new Contact { Name = "Mahaia 1", Initials = "M1", Id = "mahaia1" },
-                new Contact { Name = "Mahaia 2", Initials = "M2", Id = "mahaia2" },
-                new Contact { Name = "Mahaia 3", Initials = "M3", Id = "mahaia3" },
-                new Contact { Name = "Mahaia 4", Initials = "M4", Id = "mahaia4" },
-                new Contact { Name = "Mahaia 5", Initials = "M5", Id = "mahaia5" }
-            };
+                Name = $"Mahaia {mahaiaId}",
+                Initials = BuildInitials($"Mahaia {mahaiaId}", mahaiaId),
+                Id = $"mahaia{mahaiaId}",
+                MesaId = mahaiaId
+            });
         }
 
-        private void KonektatuZerbitzaria()
+        private async Task KonektatuZerbitzariaAsync()
         {
             try
             {
-                socketa = new TcpClient("192.168.1.104", 5555);
+                socketa = new TcpClient();
+                var connectTask = socketa.ConnectAsync(ChatHost, ChatPort);
+                var completedTask = await Task.WhenAny(connectTask, Task.Delay(ConnectTimeout));
+
+                if (completedTask != connectTask || !socketa.Connected)
+                {
+                    try { socketa.Close(); } catch { }
+                    socketa = null;
+                    MessageBox.Show("Ezin izan da ChatServidor-era konektatu. Egiaztatu zerbitzaria martxan dagoela TPV honetan.");
+                    Close();
+                    return;
+                }
+
                 var stream = socketa.GetStream();
                 irakurlea = new StreamReader(stream);
                 idazlea = new StreamWriter(stream) { AutoFlush = true };
+                idazlea.WriteLine("REGISTER|TPV");
 
                 Thread haria = new Thread(Entzun);
                 haria.IsBackground = true;
@@ -58,6 +77,7 @@ namespace Tpv
             catch (Exception ex)
             {
                 MessageBox.Show("Errorea konektatzean: " + ex.Message);
+                Close();
             }
         }
 
@@ -79,68 +99,36 @@ namespace Tpv
 
         private void ProzesatuMezua(string rawMezua)
         {
-            // Ignorar mensajes enviados por el TPV si el servidor hace eco
-            if (rawMezua.StartsWith("TPV:")) return;
+            var zatiak = rawMezua.Split('|');
+            if (zatiak.Length < 2) return;
 
-            // Formato esperado: "MahaiaX: mensaje" o "User: mensaje"
-            // También soporta formato antiguo Android: "ANDROID[MAHAI:X]: mensaje"
-            string senderName = "Ezezaguna";
-            string content = rawMezua;
-
-            // Detectar formato Android antiguo/complejo
-            if (rawMezua.StartsWith("ANDROID[MAHAI:"))
+            if (zatiak[0] == "CONTACT" && zatiak.Length >= 4 && zatiak[1] == "MESA" && int.TryParse(zatiak[2], out var kontaktuMahaiaId))
             {
-                int endBracket = rawMezua.IndexOf(']');
-                if (endBracket > 14) // "ANDROID[MAHAI:" is 14 chars
-                {
-                    string idPart = rawMezua.Substring(14, endBracket - 14); // Extract ID (e.g. "1")
-                    senderName = "Mahaia " + idPart;
-                    
-                    int msgStart = rawMezua.IndexOf(':', endBracket);
-                    if (msgStart > 0)
-                    {
-                        content = rawMezua.Substring(msgStart + 1).Trim();
-                    }
-                }
+                EnsureContact(kontaktuMahaiaId, Decode(zatiak[3]));
+                return;
+            }
+
+            if (zatiak[0] != "CHAT" || zatiak.Length < 5 || zatiak[1] != "MESA" || !int.TryParse(zatiak[2], out var mahaiaId))
+            {
+                return;
+            }
+
+            var senderName = Decode(zatiak[3]);
+            var content = Decode(zatiak[4]);
+            var contact = EnsureContact(mahaiaId, senderName);
+
+            contact.AddMessage(content, false, senderName);
+
+            if (_selectedContact != contact)
+            {
+                contact.UnreadCount++;
             }
             else
             {
-                // Formato estándar "Sender: Message"
-                int separatorIndex = rawMezua.IndexOf(':');
-                if (separatorIndex > 0)
-                {
-                    senderName = rawMezua.Substring(0, separatorIndex).Trim();
-                    content = rawMezua.Substring(separatorIndex + 1).Trim();
-                }
+                ScrollToBottom();
             }
 
-            // Buscar contacto (normalizando espacios y mayúsculas)
-            // "Mahaia 1" vs "Mahaia1" vs "mahaia 1"
-            var contact = Contacts.FirstOrDefault(c => 
-                c.Name.Replace(" ", "").Equals(senderName.Replace(" ", ""), StringComparison.OrdinalIgnoreCase) ||
-                c.Id.Equals(senderName, StringComparison.OrdinalIgnoreCase));
-
-            if (contact != null)
-            {
-                contact.AddMessage(content, false);
-                
-                // Si no es el contacto seleccionado, aumentar contador
-                if (_selectedContact != contact)
-                {
-                    contact.UnreadCount++;
-                    // Notificación visual (opcional)
-                    // System.Media.SystemSounds.Beep.Play(); 
-                }
-                else
-                {
-                    ScrollToBottom();
-                }
-            }
-            else
-            {
-                // Mensaje de alguien desconocido, lo asignamos a un "General" o lo ignoramos
-                // Por ahora, si no coincide, no hacemos nada o lo metemos en el primero si es de prueba
-            }
+            UpdateTitle();
         }
 
         private void LstContacts_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -148,7 +136,7 @@ namespace Tpv
             if (lstContacts.SelectedItem is Contact contact)
             {
                 _selectedContact = contact;
-                contact.UnreadCount = 0; // Resetear contador al leer
+                contact.UnreadCount = 0;
                 UpdateTitle();
                 lstMezuak.ItemsSource = contact.Messages;
                 txtChatTitle.Text = contact.Name;
@@ -186,17 +174,12 @@ namespace Tpv
             if (!string.IsNullOrWhiteSpace(txtMezua.Text))
             {
                 string text = txtMezua.Text;
-                
-                // Añadir mensaje localmente
-                _selectedContact.AddMessage(text, true);
+                _selectedContact.AddMessage(text, true, "TPV");
                 ScrollToBottom();
 
-                // Enviar al servidor
-                // Protocolo: "TPV: @Mahaia1 Mensaje" o simplemente broadcast "TPV: Mensaje"
-                // Asumimos broadcast o que el servidor gestiona
                 try
                 {
-                    idazlea.WriteLine($"TPV: {text}"); 
+                    idazlea.WriteLine(BuildTpvChatMessage(_selectedContact.MesaId, text));
                 }
                 catch (Exception ex)
                 {
@@ -214,13 +197,99 @@ namespace Tpv
                 lstMezuak.ScrollIntoView(lstMezuak.Items[lstMezuak.Items.Count - 1]);
             }
         }
+
+        private Contact EnsureContact(int mahaiaId, string name)
+        {
+            var normalizedName = string.IsNullOrWhiteSpace(name) ? $"Mahaia {mahaiaId}" : name;
+            var existing = Contacts.FirstOrDefault(c => c.MesaId == mahaiaId);
+            if (existing != null)
+            {
+                existing.Name = normalizedName;
+                existing.Initials = BuildInitials(normalizedName, mahaiaId);
+                return existing;
+            }
+
+            var contact = new Contact
+            {
+                Name = normalizedName,
+                Initials = BuildInitials(normalizedName, mahaiaId),
+                Id = $"mahaia{mahaiaId}",
+                MesaId = mahaiaId
+            };
+            Contacts.Add(contact);
+            return contact;
+        }
+
+        private string BuildTpvChatMessage(int mahaiaId, string text)
+        {
+            return $"CHAT|TPV|{mahaiaId}|{Encode("TPV")}|{Encode(text)}";
+        }
+
+        private string Encode(string value)
+        {
+            return Convert.ToBase64String(Encoding.UTF8.GetBytes(value ?? string.Empty));
+        }
+
+        private string Decode(string value)
+        {
+            return Encoding.UTF8.GetString(Convert.FromBase64String(value));
+        }
+
+        private string BuildInitials(string name, int mahaiaId)
+        {
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                var parts = name.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length >= 2)
+                {
+                    return $"{parts[0][0]}{parts[1][0]}".ToUpper();
+                }
+
+                if (parts.Length == 1 && parts[0].Length >= 2)
+                {
+                    return parts[0].Substring(0, 2).ToUpper();
+                }
+            }
+
+            return $"M{mahaiaId}";
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            try { irakurlea?.Close(); } catch { }
+            try { idazlea?.Close(); } catch { }
+            try { socketa?.Close(); } catch { }
+            base.OnClosing(e);
+        }
     }
 
     public class Contact : INotifyPropertyChanged
     {
-        public string Name { get; set; }
-        public string Initials { get; set; }
-        public string Id { get; set; } // Para coincidir con la DB o protocolo (mahaia1, etc)
+        private string _name;
+        private string _initials;
+
+        public string Name
+        {
+            get => _name;
+            set
+            {
+                _name = value;
+                OnPropertyChanged(nameof(Name));
+            }
+        }
+
+        public string Initials
+        {
+            get => _initials;
+            set
+            {
+                _initials = value;
+                OnPropertyChanged(nameof(Initials));
+            }
+        }
+
+        public string Id { get; set; }
+        public int MesaId { get; set; }
 
         private int _unreadCount;
         public int UnreadCount
@@ -238,13 +307,13 @@ namespace Tpv
 
         public ObservableCollection<Mezua> Messages { get; set; } = new ObservableCollection<Mezua>();
 
-        public void AddMessage(string text, bool isTpv)
+        public void AddMessage(string text, bool isTpv, string senderName)
         {
             Messages.Add(new Mezua
             {
                 Testua = text,
                 Tpvkoa = isTpv,
-                SenderName = isTpv ? "TPV" : Name,
+                SenderName = string.IsNullOrWhiteSpace(senderName) ? (isTpv ? "TPV" : Name) : senderName,
                 TimeStamp = DateTime.Now.ToString("HH:mm")
             });
         }
@@ -262,8 +331,8 @@ namespace Tpv
         public string TimeStamp { get; set; }
         
         public SolidColorBrush NameColor => Tpvkoa ? 
-            new SolidColorBrush((Color)ColorConverter.ConvertFromString("#7289DA")) : // TPV Color
-            new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FADADD"));  // Client Color
+            new SolidColorBrush((Color)ColorConverter.ConvertFromString("#7289DA")) :
+            new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FADADD"));
 
         public Color AvatarColor => Tpvkoa ? 
             (Color)ColorConverter.ConvertFromString("#7289DA") : 

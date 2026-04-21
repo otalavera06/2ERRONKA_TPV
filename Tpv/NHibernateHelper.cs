@@ -32,10 +32,6 @@ namespace Tpv
                     MySQLConfiguration.Standard
                         .ConnectionString(
                                 "Server=localhost;Port=3306;Database=erronka2_2026;Uid=root;Pwd=1mg2024;"
-                        //"Server=192.168.1.104;Port=3306;Database=erronka2_2026;Uid=taldea5;Pwd=taldea5;"
-                        //"Server=192.168.115.159;Port=3306;Database=erronka2_2026;Uid=taldea5;Pwd=taldea5;"
-
-
                         )
                 )
                 .Mappings(m =>

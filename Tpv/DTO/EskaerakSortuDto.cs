@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,5 +13,6 @@ namespace Tpv.DTO
         public decimal Prezioa { get; set; }
         public DateTime Data { get; set; }
         public int Egoera { get; set; }
+        public bool IsPlatera { get; set; }
     }
 }

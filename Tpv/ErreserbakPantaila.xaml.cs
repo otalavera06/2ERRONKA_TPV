@@ -102,8 +102,43 @@ namespace Tpv
             }
         }
 
-        private void Txat_Klik(object sender, RoutedEventArgs e)
+        private async void Txat_Klik(object sender, RoutedEventArgs e)
         {
+            if (SaioaInfo.UnekoErabiltzailea != null)
+            {
+                try
+                {
+                    using (var client = new System.Net.Http.HttpClient())
+                    {
+                        var response = await client.GetAsync($"{ApiConfig.ApiBaseUrl}/langileak/{SaioaInfo.UnekoErabiltzailea.Id}/txat-baimena");
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var jsonStr = await response.Content.ReadAsStringAsync();
+                            dynamic jsonObj = Newtonsoft.Json.JsonConvert.DeserializeObject(jsonStr);
+                            bool chatBaimena = jsonObj.chatBaimena;
+                            if (!chatBaimena)
+                            {
+                                MessageBox.Show("Langile honek ez dauka txata erabiltzeko baimenik.", "Baimena ukatuta", MessageBoxButton.OK, MessageBoxImage.Warning);
+                                return;
+                            }
+                        }
+                        else if (!SaioaInfo.UnekoErabiltzailea.chatBaimena)
+                        {
+                            MessageBox.Show("Langile honek ez dauka txata erabiltzeko baimenik.", "Baimena ukatuta", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            return;
+                        }
+                    }
+                }
+                catch
+                {
+                    if (!SaioaInfo.UnekoErabiltzailea.chatBaimena)
+                    {
+                        MessageBox.Show("Langile honek ez dauka txata erabiltzeko baimenik.", "Baimena ukatuta", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+                }
+            }
+
             TxatLeihoa txat = new TxatLeihoa();
             txat.Show();
         }
@@ -212,6 +247,24 @@ namespace Tpv
                     EguneraketaPopUp(mahaiaId, eguna);
                     return;
                 }
+
+                // Check if there's already a reservation to prevent duplicates
+                using (var clientCheck = new HttpClient())
+                {
+                    var urlCheck = $"{ApiConfig.ApiBaseUrl}/erreserbak?data={eguna:yyyy-MM-dd}&mota={mota.ToString().ToLower()}";
+                    var erantzunaCheck = await clientCheck.GetAsync(urlCheck);
+                    if (erantzunaCheck.IsSuccessStatusCode)
+                    {
+                        var jsonCheck = await erantzunaCheck.Content.ReadAsStringAsync();
+                        var erreserbakCheck = JsonConvert.DeserializeObject<List<ErreserbakDto>>(jsonCheck);
+                        if (erreserbakCheck != null && erreserbakCheck.Any(r => r.MahaiakId == mahaiaId))
+                        {
+                            MessageBox.Show("Mahaia hau jada erreserbatuta dago egun eta ordu horretarako.");
+                            return;
+                        }
+                    }
+                }
+
                 var dto = new ErreserbakSortuDto
                 {
                     Data = eguna,

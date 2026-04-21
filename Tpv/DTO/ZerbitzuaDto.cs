@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,6 +14,7 @@ namespace Tpv.DTO
         public virtual DateTime Data { get; set; }
         public virtual int? ErreserbaId { get; set; }
         public virtual int? MahaiakId { get; set; }
+        public virtual bool Ordainduta { get; set; }
 
         public virtual IList<EskaeraDto> Eskaerak { get; set; } = new List<EskaeraDto>();
         public string ZerbitzuaHeader => $"#{Id} - {Data} - {PrezioTotala}€";

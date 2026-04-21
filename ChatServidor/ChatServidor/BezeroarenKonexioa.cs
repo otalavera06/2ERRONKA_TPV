@@ -21,19 +21,36 @@ public class BezeroarenKonexioa
 
     private void Run()
     {
-        bezeroa.Bidali("Ongi etorri jatetxeko txatera!");
         try
         {
             while (bezeroa.Konektatuta())
             {
                 string mezua = bezeroa.Irakurri();
                 if (mezua == null) break;
-                zerbitzaria.BidaliMezuaGuztiei(mezua);
+
+                if (!ChatProtokoloa.SaiatuPaketeaIrakurtzen(mezua, out var paketea))
+                {
+                    Console.WriteLine("Pakete ezezaguna: " + mezua);
+                    continue;
+                }
+
+                if (bezeroa.Rola == TxatRola.Ezezaguna && paketea.Komandoa != "REGISTER")
+                {
+                    Console.WriteLine("Erregistratu gabeko bezero baten mezua baztertuta.");
+                    continue;
+                }
+
+                zerbitzaria.ProzesatuPaketea(bezeroa, paketea);
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine("Errorea bezeroan: " + ex.Message);
+        }
+        finally
+        {
+            zerbitzaria.KenduBezeroa(bezeroa);
+            bezeroa.Itxi();
         }
     }
 }

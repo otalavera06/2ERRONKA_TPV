@@ -28,10 +28,12 @@ namespace Tpv
     {
         private decimal? _odooDeskontatutakoTotala;
         private string _odooDeskontuIzena = string.Empty;
+        private int _mahaiId;
 
-        public EskaerakPantaila()
+        public EskaerakPantaila(int mahaiId)
         {
             InitializeComponent();
+            _mahaiId = mahaiId;
             EguneratuEskaeraLaburpena();
             _ = EdariakKargatu();
             _ = AzkenekoEskaerakKargatu();
@@ -65,6 +67,7 @@ namespace Tpv
         {
             try
             {
+                _produktuak.Clear();
                 using (var client = new HttpClient())
                 {
                     client.BaseAddress = new Uri(ApiConfig.ApiBaseUrl + "/");
@@ -72,15 +75,39 @@ namespace Tpv
                     if (response.IsSuccessStatusCode)
                     {
                         var json = await response.Content.ReadAsStringAsync();
-                        _produktuak = JsonConvert.DeserializeObject<List<ProduktuaDto>>(json);
-                        
-                        gridEdariak.Children.Clear();
-                        KargatuProduktuakUI();
+                        var edariak = JsonConvert.DeserializeObject<List<ProduktuaDto>>(json);
+                        _produktuak.AddRange(edariak.Where(p => p.ProduktuenMotakId != 8 && p.Stock > 0));
                     }
                     else
                     {
                         MessageBox.Show("Errorea produktuak kargatzean: " + response.StatusCode);
                     }
+
+                    var responsePlaterak = await client.GetAsync("platerak");
+                    if (responsePlaterak.IsSuccessStatusCode)
+                    {
+                        var json = await responsePlaterak.Content.ReadAsStringAsync();
+                        var erantzuna = JsonConvert.DeserializeObject<ErantzunaDTO<List<PlateraDTO>>>(json);
+                        if (erantzuna?.Datuak != null)
+                        {
+                            foreach (var pl in erantzuna.Datuak)
+                            {
+                                _produktuak.Add(new ProduktuaDto
+                                {
+                                    Id = pl.Id,
+                                    Izena = pl.Izena,
+                                    Prezioa = pl.Prezioa,
+                                    IrudiaPath = pl.ArgazkiaUrl,
+                                    Stock = 999, // Platerak always available unless OSAGAIAK is out, but TPV can handle it
+                                    IsPlatera = true
+                                });
+                            }
+                        }
+                    }
+
+                    gridProduktuak.Children.Clear();
+                    gridPlaterak.Children.Clear();
+                    KargatuProduktuakUI();
                 }
             }
             catch (Exception ex)
@@ -90,7 +117,9 @@ namespace Tpv
         }
         private void KargatuProduktuakUI()
         {
-            foreach (var p in _produktuak)
+            var produktuErakutsigarriak = _produktuak.OrderBy(p => p.Izena).ToList();
+
+            foreach (var p in produktuErakutsigarriak)
             {
                 var btn = new Button
                 {
@@ -123,12 +152,20 @@ namespace Tpv
                 panel.Children.Add(new TextBlock
                 {
                     Text = p.Izena,
-                    TextAlignment = TextAlignment.Center
+                    TextAlignment = TextAlignment.Center,
+                    TextWrapping = TextWrapping.Wrap
                 });
                 btn.Content = panel;
                 btn.Click += ProduktuaKlik;
 
-                gridEdariak.Children.Add(btn);
+                if (p.IsPlatera)
+                {
+                    gridPlaterak.Children.Add(btn);
+                }
+                else
+                {
+                    gridProduktuak.Children.Add(btn);
+                }
             }
         }
 
@@ -153,10 +190,28 @@ namespace Tpv
                 return;
             }
 
+            var hautatutakoProduktuak = lsEskaerak.Items.OfType<ProduktuaDto>().ToList();
+            var stockFalta = hautatutakoProduktuak
+                .GroupBy(p => p.Id)
+                .Select(g => new
+                {
+                    Produktua = g.First(),
+                    EskatutakoKantitatea = g.Count()
+                })
+                .FirstOrDefault(x => x.EskatutakoKantitatea > x.Produktua.Stock);
+
+            if (stockFalta != null)
+            {
+                MessageBox.Show(
+                    $"Ez dago stock nahikorik produktu honentzat: {stockFalta.Produktua.Izena}. " +
+                    $"Eskatuta: {stockFalta.EskatutakoKantitatea}, stock erabilgarria: {stockFalta.Produktua.Stock}");
+                return;
+            }
+
             var zerbitzua = new ZerbitzuaSortuDto
             {
                 Data = DateTime.Now,
-                MahaiakId = 6,
+                MahaiakId = _mahaiId,
                 PrezioTotala = 0,
                 Eskaerak = new List<EskaerakSortuDto>()
             };
@@ -169,7 +224,8 @@ namespace Tpv
                     Izena = p.Izena,
                     Prezioa = p.Prezioa,
                     Data = DateTime.Now,
-                    Egoera = 0
+                    Egoera = 0,
+                    IsPlatera = p.IsPlatera
                 });
             }
 
@@ -188,10 +244,14 @@ namespace Tpv
                     lsEskaerak.Items.Clear();
                     EguneratuEskaeraLaburpena(true);
                     await AzkenekoEskaerakKargatu();
+                    _produktuak.Clear();
+                    await EdariakKargatu();
                 }
                 else
                 {
-                    MessageBox.Show("Errorea eskaera gordetzean: " + response.StatusCode);
+                    var errorBody = await response.Content.ReadAsStringAsync();
+                    var erroreMezua = string.IsNullOrWhiteSpace(errorBody) ? response.StatusCode.ToString() : errorBody;
+                    MessageBox.Show("Errorea eskaera gordetzean: " + erroreMezua);
                 }
             }
         }
@@ -203,6 +263,30 @@ namespace Tpv
                     EguneratuEskaeraLaburpena(true);
                 }
             }
+
+        private void BtnGehituAzkenetik_Klik(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.DataContext is DTO.EskaeraDto eskaera)
+            {
+                var produktua = new ProduktuaDto
+                {
+                    Id = eskaera.ProduktuaId,
+                    Izena = eskaera.Izena,
+                    Prezioa = eskaera.Prezioa
+                };
+                lsEskaerak.Items.Add(produktua);
+                EguneratuEskaeraLaburpena(true);
+            }
+        }
+
+        private void BtnKenduProduktua_Klik(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.DataContext is ProduktuaDto produktua)
+            {
+                lsEskaerak.Items.Remove(produktua);
+                EguneratuEskaeraLaburpena(true);
+            }
+        }
 
         private async void BtnOdooDeskontua_Klik(object sender, RoutedEventArgs e)
         {
@@ -293,7 +377,7 @@ namespace Tpv
                 using (var client = new HttpClient())
                 {
                     client.BaseAddress = new Uri(ApiConfig.ApiBaseUrl + "/");
-                    var response = await client.GetAsync("zerbitzua/mahaia/6");
+                    var response = await client.GetAsync($"zerbitzua/mahaia/{_mahaiId}");
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -335,18 +419,62 @@ namespace Tpv
             menu.Show();
         }
 
-        private void Txat_Klik(object sender, RoutedEventArgs e)
+        private async void Txat_Klik(object sender, RoutedEventArgs e)
         {
+            if (SaioaInfo.UnekoErabiltzailea != null)
+            {
+                try
+                {
+                    using (var client = new System.Net.Http.HttpClient())
+                    {
+                        var response = await client.GetAsync($"{ApiConfig.ApiBaseUrl}/langileak/{SaioaInfo.UnekoErabiltzailea.Id}/txat-baimena");
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var jsonStr = await response.Content.ReadAsStringAsync();
+                            dynamic jsonObj = Newtonsoft.Json.JsonConvert.DeserializeObject(jsonStr);
+                            bool chatBaimena = jsonObj.chatBaimena;
+                            if (!chatBaimena)
+                            {
+                                MessageBox.Show("Langile honek ez dauka txata erabiltzeko baimenik.", "Baimena ukatuta", MessageBoxButton.OK, MessageBoxImage.Warning);
+                                return;
+                            }
+                        }
+                        else if (!SaioaInfo.UnekoErabiltzailea.chatBaimena)
+                        {
+                            MessageBox.Show("Langile honek ez dauka txata erabiltzeko baimenik.", "Baimena ukatuta", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            return;
+                        }
+                    }
+                }
+                catch
+                {
+                    if (!SaioaInfo.UnekoErabiltzailea.chatBaimena)
+                    {
+                        MessageBox.Show("Langile honek ez dauka txata erabiltzeko baimenik.", "Baimena ukatuta", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+                }
+            }
+
             TxatLeihoa txat = new TxatLeihoa();
             txat.Show();
         }
 
         private void LsAzkenEskaerak_DoubleKlik(object sender, MouseButtonEventArgs e)
         {
-            if (lsAzkenEskaerak.SelectedItem != null)
+            if (lsAzkenEskaerak.SelectedItem is DTO.ZerbitzuaDto zerbitzua)
             {
-                string aukeratutakoEskaera = lsAzkenEskaerak.SelectedItem.ToString();
-                MessageBox.Show($"{aukeratutakoEskaera}");
+                foreach (var eskaera in zerbitzua.Eskaerak)
+                {
+                    var produktua = new ProduktuaDto
+                    {
+                        Id = eskaera.ProduktuaId,
+                        Izena = eskaera.Izena,
+                        Prezioa = eskaera.Prezioa
+                    };
+                    lsEskaerak.Items.Add(produktua);
+                }
+                EguneratuEskaeraLaburpena(true);
             }
         }
 

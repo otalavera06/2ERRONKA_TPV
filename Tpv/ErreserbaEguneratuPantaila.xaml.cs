@@ -84,6 +84,34 @@ namespace Tpv
                 return;
             }
 
+            
+            if (dataBerria.Date != _eguna.Date || _mota != _motaOriginala)
+            {
+                try
+                {
+                    using (var clientCheck = new HttpClient())
+                    {
+                        var urlCheck = $"{ApiConfig.ApiBaseUrl}/erreserbak?data={dataBerria:yyyy-MM-dd}&mota={_mota.ToString().ToLower()}";
+                        var erantzunaCheck = await clientCheck.GetAsync(urlCheck);
+                        if (erantzunaCheck.IsSuccessStatusCode)
+                        {
+                            var jsonCheck = await erantzunaCheck.Content.ReadAsStringAsync();
+                            var erreserbakCheck = JsonConvert.DeserializeObject<List<ErreserbakDto>>(jsonCheck);
+                            if (erreserbakCheck != null && erreserbakCheck.Any(r => r.MahaiakId == _mahaiaId))
+                            {
+                                MessageBox.Show("Mahaia hau jada erreserbatuta dago aukeratu duzun egun eta ordu horretarako.");
+                                return;
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Errorea erreserbak egiaztatzean: " + ex.Message);
+                    return;
+                }
+            }
+
             var dto = new ErreserbakSortuDto
             {
                 Data = dataBerria,

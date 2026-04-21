@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,8 +15,8 @@ namespace Tpv.Modeloak
             public virtual int Id { get; set; }
             public virtual string erabiltzailea { get; set; }
             public virtual string pasahitza { get; set; }
-            public virtual bool baimena { get; }
-         
+            public virtual bool baimena { get; set; }
+            public virtual bool chatBaimena { get; set; }
         }
     }
 

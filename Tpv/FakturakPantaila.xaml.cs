@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using Tpv.DTO;
 using Newtonsoft.Json.Linq;
+using System.Linq;
 
 namespace Tpv
 {
@@ -41,7 +42,7 @@ namespace Tpv
         private void Eskaerak_Klik(object sender, RoutedEventArgs e)
         {
             this.Hide();
-            var eskaera = new EskaerakPantaila();
+            var eskaera = new ZerbitzuakPantaila();
             eskaera.Show();
         }
         private void Fakturak_Klik(object sender, RoutedEventArgs e)
@@ -77,8 +78,43 @@ namespace Tpv
             menu.Show();
         }
 
-        private void Txat_Klik(object sender, RoutedEventArgs e)
+        private async void Txat_Klik(object sender, RoutedEventArgs e)
         {
+            if (SaioaInfo.UnekoErabiltzailea != null)
+            {
+                try
+                {
+                    using (var client = new System.Net.Http.HttpClient())
+                    {
+                        var response = await client.GetAsync($"{ApiConfig.ApiBaseUrl}/langileak/{SaioaInfo.UnekoErabiltzailea.Id}/txat-baimena");
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var jsonStr = await response.Content.ReadAsStringAsync();
+                            dynamic jsonObj = Newtonsoft.Json.JsonConvert.DeserializeObject(jsonStr);
+                            bool chatBaimena = jsonObj.chatBaimena;
+                            if (!chatBaimena)
+                            {
+                                MessageBox.Show("Langile honek ez dauka txata erabiltzeko baimenik.", "Baimena ukatuta", MessageBoxButton.OK, MessageBoxImage.Warning);
+                                return;
+                            }
+                        }
+                        else if (!SaioaInfo.UnekoErabiltzailea.chatBaimena)
+                        {
+                            MessageBox.Show("Langile honek ez dauka txata erabiltzeko baimenik.", "Baimena ukatuta", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            return;
+                        }
+                    }
+                }
+                catch
+                {
+                    if (!SaioaInfo.UnekoErabiltzailea.chatBaimena)
+                    {
+                        MessageBox.Show("Langile honek ez dauka txata erabiltzeko baimenik.", "Baimena ukatuta", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+                }
+            }
+
             TxatLeihoa txat = new TxatLeihoa();
             txat.Show();
         }
@@ -128,14 +164,27 @@ namespace Tpv
                             : sortutaToken.Value<int>() != 0;
                     }
 
-                    fakturak.Add(new FakturaDto
+                    var faktura = new FakturaDto
                     {
                         Id = (it["Id"] ?? it["id"])?.Value<int>() ?? 0,
                         ZerbitzuaId = (it["ZerbitzuaId"] ?? it["zerbitzuaId"] ?? it["zerbitzua_id"])?.Value<int>() ?? 0,
                         PrezioTotala = prezio,
                         Sortuta = sortuta,
                         Path = (it["Path"] ?? it["path"])?.ToString() ?? string.Empty
-                    });
+                    };
+
+                    
+                    var zerbitzuaResponse = await client.GetAsync($"zerbitzua/{faktura.ZerbitzuaId}");
+                    if (zerbitzuaResponse.IsSuccessStatusCode)
+                    {
+                        var zerbitzuaJson = await zerbitzuaResponse.Content.ReadAsStringAsync();
+                        var zerbitzua = JsonConvert.DeserializeObject<DTO.ZerbitzuaDto>(zerbitzuaJson);
+                        faktura.Data = zerbitzua.Data.ToString("yyyy-MM-dd HH:mm");
+                        faktura.MahaiaIzena = $"Mahaia {zerbitzua.MahaiakId}"; 
+                        faktura.EskaeraXehetasunak = string.Join(", ", zerbitzua.Eskaerak.Select(e => e.Izena));
+                    }
+
+                    fakturak.Add(faktura);
                 }
                 dgFakturak.ItemsSource = fakturak;
             }
@@ -151,10 +200,13 @@ namespace Tpv
 
                 try
                 {
-                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    await Task.Run(() => 
                     {
-                        FileName = url,
-                        UseShellExecute = true
+                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = url,
+                            UseShellExecute = true
+                        });
                     });
                 }
                 catch (Exception ex)

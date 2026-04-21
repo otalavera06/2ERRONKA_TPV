@@ -42,9 +42,9 @@ namespace Tpv
 
         private void Eskaerak_Klik(object sender, RoutedEventArgs e)
         {
+            var e_pantaila = new ZerbitzuakPantaila();
+            e_pantaila.Show();
             this.Hide();
-            var eskaera = new EskaerakPantaila();
-            eskaera.Show();
         }
         private void Fakturak_Klik(object sender, RoutedEventArgs e)
         {
@@ -74,8 +74,43 @@ namespace Tpv
             }
         }
 
-        private void Txat_Klik(object sender, RoutedEventArgs e)
+        private async void Txat_Klik(object sender, RoutedEventArgs e)
         {
+            if (SaioaInfo.UnekoErabiltzailea != null)
+            {
+                try
+                {
+                    using (var client = new System.Net.Http.HttpClient())
+                    {
+                        var response = await client.GetAsync($"{ApiConfig.ApiBaseUrl}/langileak/{SaioaInfo.UnekoErabiltzailea.Id}/txat-baimena");
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var jsonStr = await response.Content.ReadAsStringAsync();
+                            dynamic jsonObj = Newtonsoft.Json.JsonConvert.DeserializeObject(jsonStr);
+                            bool chatBaimena = jsonObj.chatBaimena;
+                            if (!chatBaimena)
+                            {
+                                MessageBox.Show("Langile honek ez dauka txata erabiltzeko baimenik.", "Baimena ukatuta", MessageBoxButton.OK, MessageBoxImage.Warning);
+                                return;
+                            }
+                        }
+                        else if (!SaioaInfo.UnekoErabiltzailea.chatBaimena)
+                        {
+                            MessageBox.Show("Langile honek ez dauka txata erabiltzeko baimenik.", "Baimena ukatuta", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            return;
+                        }
+                    }
+                }
+                catch
+                {
+                    if (!SaioaInfo.UnekoErabiltzailea.chatBaimena)
+                    {
+                        MessageBox.Show("Langile honek ez dauka txata erabiltzeko baimenik.", "Baimena ukatuta", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+                }
+            }
+
             TxatLeihoa txat = new TxatLeihoa();
             txat.Show();
         }

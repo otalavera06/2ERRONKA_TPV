@@ -102,6 +102,9 @@ namespace Tpv
                         GarbituEremuak();
                         return;
                     }
+                    
+                    // Gorde erabiltzailea saio globalean
+                    SaioaInfo.UnekoErabiltzailea = erabiltzaileObj;
 
                     MessageBox.Show("Ongi etorri, " + erabiltzaileObj.Erabiltzailea + "!");
                     this.Hide();

@@ -4,25 +4,22 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             Title="LoginPantaila"
+             Title="Musinelli TPV"
              ResizeMode="CanResize"
              WindowStartupLocation="CenterScreen"
-             Height="450" Width="800"
+             Height="560" Width="980"
              WindowStyle="None"
-             Background="#EEEEEE">
+             Background="{StaticResource BrandSoft}">
     <Window.Resources>
-        <Style x:Key="LoginButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#373F47"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="24"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Padding" Value="10"/>
+        <Style x:Key="LoginButtonStyle" TargetType="Button" BasedOn="{StaticResource LuxuryPrimaryButton}">
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="Padding" Value="14"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="5" Padding="{TemplateBinding Padding}">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="14" Padding="{TemplateBinding Padding}">
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <Rectangle Width="30" Height="30" Fill="White" Margin="0,0,10,0">
+                                <Rectangle Width="28" Height="28" Fill="{StaticResource BrandBlack}" Margin="0,0,10,0">
                                     <Rectangle.OpacityMask>
                                         <ImageBrush ImageSource="Irudiak/saioaHasi.png"/>
                                     </Rectangle.OpacityMask>
@@ -33,50 +30,69 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#2C333A"/>
-                </Trigger>
-                <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="#2C333A"/>
-                </Trigger>
-            </Style.Triggers>
         </Style>
     </Window.Resources>
     <Grid>
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="0.8*"/>
+                <ColumnDefinition Width="1.2*"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Background="#FCFEFC">
-                <Image Source="Irudiak/sushineli.png"
-                   Stretch="Uniform"
-                   VerticalAlignment="Center"
-                   HorizontalAlignment="Center"/>
+            <Border Grid.Column="0" Background="{StaticResource BrandBlack}">
+                <Grid Margin="20">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <Image Source="Irudiak/logo2erronkabien.png"
+                               Width="200"
+                               Stretch="Uniform"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"/>
+                        <TextBlock Text="TPV"
+                                   Foreground="{StaticResource BrandGold}"
+                                   FontSize="26"
+                                   FontWeight="SemiBold"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,15,0,0"/>
+                    </StackPanel>
+                </Grid>
             </Border>
 
-            <Border Grid.Column="1" Background="#B92732" Padding="40">
-                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="300">
+            <Border Grid.Column="1" Background="{StaticResource BrandSurface}" Padding="55">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="340">
+                    <TextBlock Text="Musinelli"
+                               Foreground="{StaticResource BrandBlack}"
+                               FontSize="34"
+                               FontWeight="Bold"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="Saioa hasi"
+                               Foreground="{StaticResource BrandMuted}"
+                               FontSize="18"
+                               Margin="0,8,0,30"
+                               HorizontalAlignment="Center"/>
                     <TextBlock Text="Erabiltzailea:"
-                       Foreground="White"
-                       FontSize="24"
+                       Foreground="{StaticResource BrandBlack}"
+                       FontSize="22"
                        FontWeight="Bold"
-                       Margin="0,0,0,5"/>
+                       Margin="0,0,0,8"/>
                     <TextBox x:Name="txtErabiltzailea"
-                       Background="#FCFEFC"
-                       FontSize="24"
-                       Margin="0,0,0,15"/>
+                       Background="{StaticResource BrandSoft}"
+                       BorderBrush="{StaticResource BrandChampagne}"
+                       BorderThickness="2"
+                       Padding="12"
+                       FontSize="20"
+                       Margin="0,0,0,18"/>
                     <TextBlock Text="Pasahitza:"
-                       Foreground="White"
-                       FontSize="24"
+                       Foreground="{StaticResource BrandBlack}"
+                       FontSize="22"
                        FontWeight="Bold"
-                       Margin="0,0,0,5"/>
+                       Margin="0,0,0,8"/>
                     <PasswordBox x:Name="txtPasahitza"
-                       Background="#FCFEFC"
-                       FontSize="24"
-                       Margin="0,0,0,20"/>
+                       Background="{StaticResource BrandSoft}"
+                       BorderBrush="{StaticResource BrandChampagne}"
+                       BorderThickness="2"
+                       Padding="12"
+                       FontSize="20"
+                       Margin="0,0,0,26"/>
                     <Button x:Name="btnLogin"
                         Style="{StaticResource LoginButtonStyle}"
                         IsDefault="True"
@@ -96,8 +112,8 @@
             </Grid.ColumnDefinitions>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
-                <Button Content="_" Width="40" Height="30" Margin="3" Click="Minimizatu_Klik" Background="Transparent" Foreground="White" FontSize="22" FontWeight="Bold"/>
-                <Button Content="X" Width="40" Height="30" Margin="3" Click="Itxi_Klik" Background="Transparent" Foreground="White" FontSize="22" FontWeight="Bold"/>
+                <Button Content="_" Width="40" Height="30" Margin="3" Click="Minimizatu_Klik" Background="Transparent" Foreground="{StaticResource BrandIvory}" FontSize="22" FontWeight="Bold"/>
+                <Button Content="X" Width="40" Height="30" Margin="3" Click="Itxi_Klik" Background="Transparent" Foreground="{StaticResource BrandIvory}" FontSize="22" FontWeight="Bold"/>
             </StackPanel>
         </Grid>
     </Grid>

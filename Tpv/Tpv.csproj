@@ -12,7 +12,11 @@
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <GenerateResourceMSBuildArchitecture>CurrentArchitecture</GenerateResourceMSBuildArchitecture>
+    <GenerateResourceMSBuildRuntime>CurrentRuntime</GenerateResourceMSBuildRuntime>
+    <StartupObject>Tpv.Program</StartupObject>
   </PropertyGroup>
+
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
@@ -132,6 +136,7 @@
     <Compile Include="DTO\FakturaDto.cs" />
     <Compile Include="DTO\LangileakDto.cs" />
     <Compile Include="DTO\ProduktuaDto.cs" />
+    <Compile Include="DTO\PlateraDTO.cs" />
     <Compile Include="DTO\ZerbitzuaDto.cs" />
     <Compile Include="DTO\ZerbitzuaSortuDto.cs" />
     <Compile Include="ErreserbaEguneratuPantaila.xaml.cs">
@@ -139,6 +144,9 @@
     </Compile>
     <Compile Include="ErreserbakPantaila.xaml.cs">
       <DependentUpon>ErreserbakPantaila.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ZerbitzuakPantaila.xaml.cs">
+      <DependentUpon>ZerbitzuakPantaila.xaml</DependentUpon>
     </Compile>
     <Compile Include="ErreserbaService.cs" />
     <Compile Include="EskaerakPantaila.xaml.cs">
@@ -175,6 +183,7 @@
     <Compile Include="SaioaItxiDialog.xaml.cs">
       <DependentUpon>SaioaItxiDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="SaioaInfo.cs" />
     <Compile Include="TxatLeihoa.xaml.cs">
       <DependentUpon>TxatLeihoa.xaml</DependentUpon>
     </Compile>
@@ -216,15 +225,21 @@
     <Content Include="Resources\usuario.png" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="App.xaml">
-      <SubType>Designer</SubType>
+    <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
-    </Page>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+  </ItemGroup>
+  <ItemGroup>
     <Page Include="ErreserbaEguneratuPantaila.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ErreserbakPantaila.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ZerbitzuakPantaila.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -258,4 +273,8 @@
     </Page>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <WpfTargetsPath Condition="'$(WpfTargetsPath)' == ''">$(MSBuildExtensionsPath)\Microsoft\Windows\v$(VisualStudioVersion)\WPF\Microsoft.WinFX.targets</WpfTargetsPath>
+  </PropertyGroup>
+  <Import Project="$(WpfTargetsPath)" Condition="Exists('$(WpfTargetsPath)')" />
 </Project>
