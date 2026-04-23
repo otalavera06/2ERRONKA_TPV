@@ -1,7 +1,9 @@
 using System;
 using System.Text;
 
-public enum TxatRola
+namespace ChatServidor
+{
+    public enum TxatRola
 {
     Ezezaguna,
     Tpv,
@@ -15,20 +17,30 @@ public class TxatPaketea
     public int? MahaiaId { get; set; }
     public string Bidaltzailea { get; set; }
     public string Testua { get; set; }
+    public string TipuaMezua { get; set; }
+    public string FitxategiIzena { get; set; }
+    public long FitxategiTamaina { get; set; }
 }
 
 public static class ChatProtokoloa
 {
-    private static string Kodetu(string balioa)
+    public static string Kodetu(string balioa)
     {
         var testua = balioa ?? string.Empty;
-        return Convert.ToBase64String(Encoding.UTF8.GetBytes(testua));
+        return CryptoHelper.Cifrar(testua);
     }
 
-    private static string Deskodetu(string balioa)
+    public static string Deskodetu(string balioa)
     {
         if (string.IsNullOrWhiteSpace(balioa)) return string.Empty;
-        return Encoding.UTF8.GetString(Convert.FromBase64String(balioa));
+        try
+        {
+            return CryptoHelper.Descifrar(balioa);
+        }
+        catch
+        {
+            return string.Empty;
+        }
     }
 
     public static string SortuErregistroTpv()
@@ -49,7 +61,19 @@ public static class ChatProtokoloa
     public static string SortuTxatMezua(TxatRola rola, int mahaiaId, string bidaltzailea, string testua)
     {
         var rolIzena = rola == TxatRola.Tpv ? "TPV" : "MESA";
-        return $"CHAT|{rolIzena}|{mahaiaId}|{Kodetu(bidaltzailea)}|{Kodetu(testua)}";
+        return $"CHAT|{rolIzena}|{mahaiaId}|{Kodetu(bidaltzailea)}|{Kodetu(testua)}|TEXT";
+    }
+
+    public static string SortuEmojiMezua(TxatRola rola, int mahaiaId, string bidaltzailea, string emoji)
+    {
+        var rolIzena = rola == TxatRola.Tpv ? "TPV" : "MESA";
+        return $"CHAT|{rolIzena}|{mahaiaId}|{Kodetu(bidaltzailea)}|{Kodetu(emoji)}|EMOJI";
+    }
+
+    public static string SortuFitxategiMezua(TxatRola rola, int mahaiaId, string bidaltzailea, string fitxategiIzena, string fitxategiDataBes64)
+    {
+        var rolIzena = rola == TxatRola.Tpv ? "TPV" : "MESA";
+        return $"CHAT|{rolIzena}|{mahaiaId}|{Kodetu(bidaltzailea)}|{fitxategiIzena}|{fitxategiDataBes64}|FILE";
     }
 
     public static bool SaiatuPaketeaIrakurtzen(string lerroa, out TxatPaketea paketea)
@@ -95,17 +119,36 @@ public static class ChatProtokoloa
             else if (zatiak[1] == "MESA") rola = TxatRola.Mahaia;
             else return false;
 
+            string tipoMezua = zatiak.Length >= 7 ? zatiak[6] : "TEXT";
+
+            if (tipoMezua == "FILE" && zatiak.Length >= 7)
+            {
+                paketea = new TxatPaketea
+                {
+                    Komandoa = "CHAT",
+                    Rola = rola,
+                    MahaiaId = txatMahaiaId,
+                    Bidaltzailea = Deskodetu(zatiak[3]),
+                    FitxategiIzena = zatiak[4],
+                    Testua = zatiak[5],
+                    TipuaMezua = "FILE"
+                };
+                return true;
+            }
+
             paketea = new TxatPaketea
             {
                 Komandoa = "CHAT",
                 Rola = rola,
                 MahaiaId = txatMahaiaId,
                 Bidaltzailea = Deskodetu(zatiak[3]),
-                Testua = Deskodetu(zatiak[4])
+                Testua = Deskodetu(zatiak[4]),
+                TipuaMezua = tipoMezua
             };
             return true;
         }
 
         return false;
     }
+}
 }

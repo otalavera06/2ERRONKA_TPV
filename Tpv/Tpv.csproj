@@ -16,7 +16,6 @@
     <GenerateResourceMSBuildRuntime>CurrentRuntime</GenerateResourceMSBuildRuntime>
     <StartupObject>Tpv.Program</StartupObject>
   </PropertyGroup>
-
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
@@ -129,6 +128,8 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="ApiConfig.cs" />
+    <Compile Include="ChatProtokoloa.cs" />
+    <Compile Include="CryptoHelper.cs" />
     <Compile Include="DTO\ErreserbakDto.cs" />
     <Compile Include="DTO\ErreserbakSortuDto.cs" />
     <Compile Include="DTO\EskaeraDto.cs" />

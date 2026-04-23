@@ -46,6 +46,7 @@
     <Compile Include="Bezeroa.cs" />
     <Compile Include="BezeroarenKonexioa.cs" />
     <Compile Include="ChatProtokoloa.cs" />
+    <Compile Include="CryptoHelper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Zerbitzaria.cs" />

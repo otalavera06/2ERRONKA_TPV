@@ -4,7 +4,9 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 
-public class Zerbitzaria
+namespace ChatServidor
+{
+    public class Zerbitzaria
 {
     private TcpListener entzulea;
     private List<Bezeroa> bezeroak = new List<Bezeroa>();
@@ -82,45 +84,89 @@ public class Zerbitzaria
         }
     }
 
-    public void ProzesatuPaketea(Bezeroa bezeroa, TxatPaketea paketea)
-    {
-        if (paketea.Komandoa == "REGISTER")
+        public void ProzesatuPaketea(Bezeroa bezeroa, TxatPaketea paketea)
         {
-            Erregistratu(bezeroa, paketea);
-            return;
-        }
-
-        if (paketea.Komandoa != "CHAT") return;
-
-        if (bezeroa.Rola == TxatRola.Mahaia && bezeroa.MahaiaId.HasValue)
-        {
-            var mezua = ChatProtokoloa.SortuTxatMezua(
-                TxatRola.Mahaia,
-                bezeroa.MahaiaId.Value,
-                bezeroa.Izena,
-                paketea.Testua ?? string.Empty);
-
-            foreach (var tpv in LortuTpvak())
+            if (paketea.Komandoa == "REGISTER")
             {
-                tpv.Bidali(mezua);
+                Erregistratu(bezeroa, paketea);
+                return;
             }
-            return;
-        }
 
-        if (bezeroa.Rola == TxatRola.Tpv && paketea.MahaiaId.HasValue)
-        {
-            var mezua = ChatProtokoloa.SortuTxatMezua(
-                TxatRola.Tpv,
-                paketea.MahaiaId.Value,
-                string.IsNullOrWhiteSpace(bezeroa.Izena) ? "TPV" : bezeroa.Izena,
-                paketea.Testua ?? string.Empty);
+            if (paketea.Komandoa != "CHAT") return;
 
-            foreach (var mahaia in LortuMahaikoBezeroak(paketea.MahaiaId.Value))
+            if (bezeroa.Rola == TxatRola.Mahaia && bezeroa.MahaiaId.HasValue)
             {
-                mahaia.Bidali(mezua);
+                string mezua;
+
+                if (paketea.TipuaMezua == "FILE")
+                {
+                    mezua = ChatProtokoloa.SortuFitxategiMezua(
+                        TxatRola.Mahaia,
+                        bezeroa.MahaiaId.Value,
+                        bezeroa.Izena,
+                        paketea.FitxategiIzena ?? string.Empty,
+                        paketea.Testua ?? string.Empty);
+                }
+                else if (paketea.TipuaMezua == "EMOJI")
+                {
+                    mezua = ChatProtokoloa.SortuEmojiMezua(
+                        TxatRola.Mahaia,
+                        bezeroa.MahaiaId.Value,
+                        bezeroa.Izena,
+                        paketea.Testua ?? string.Empty);
+                }
+                else
+                {
+                    mezua = ChatProtokoloa.SortuTxatMezua(
+                        TxatRola.Mahaia,
+                        bezeroa.MahaiaId.Value,
+                        bezeroa.Izena,
+                        paketea.Testua ?? string.Empty);
+                }
+
+                foreach (var tpv in LortuTpvak())
+                {
+                    tpv.Bidali(mezua);
+                }
+                return;
+            }
+
+            if (bezeroa.Rola == TxatRola.Tpv && paketea.MahaiaId.HasValue)
+            {
+                string mezua;
+
+                if (paketea.TipuaMezua == "FILE")
+                {
+                    mezua = ChatProtokoloa.SortuFitxategiMezua(
+                        TxatRola.Tpv,
+                        paketea.MahaiaId.Value,
+                        string.IsNullOrWhiteSpace(bezeroa.Izena) ? "TPV" : bezeroa.Izena,
+                        paketea.FitxategiIzena ?? string.Empty,
+                        paketea.Testua ?? string.Empty);
+                }
+                else if (paketea.TipuaMezua == "EMOJI")
+                {
+                    mezua = ChatProtokoloa.SortuEmojiMezua(
+                        TxatRola.Tpv,
+                        paketea.MahaiaId.Value,
+                        string.IsNullOrWhiteSpace(bezeroa.Izena) ? "TPV" : bezeroa.Izena,
+                        paketea.Testua ?? string.Empty);
+                }
+                else
+                {
+                    mezua = ChatProtokoloa.SortuTxatMezua(
+                        TxatRola.Tpv,
+                        paketea.MahaiaId.Value,
+                        string.IsNullOrWhiteSpace(bezeroa.Izena) ? "TPV" : bezeroa.Izena,
+                        paketea.Testua ?? string.Empty);
+                }
+
+                foreach (var mahaia in LortuMahaikoBezeroak(paketea.MahaiaId.Value))
+                {
+                    mahaia.Bidali(mezua);
+                }
             }
         }
-    }
 
     private List<Bezeroa> LortuTpvak()
     {
@@ -151,4 +197,5 @@ public class Zerbitzaria
                 .ToList();
         }
     }
+}
 }
