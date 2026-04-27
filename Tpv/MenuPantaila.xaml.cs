@@ -115,6 +115,12 @@ namespace Tpv
             txat.Show();
         }
 
+        private void Eguraldia_Klik(object sender, RoutedEventArgs e)
+        {
+            EguraldiaLeihoa eguraldia = new EguraldiaLeihoa();
+            eguraldia.Show();
+        }
+
     }
 }
 

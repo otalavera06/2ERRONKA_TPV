@@ -62,6 +62,27 @@
                         </ControlTemplate>
                     </Button.Template>
                 </Button>
+                <Button Background="Transparent" BorderThickness="0" Padding="5" Cursor="Hand" Click="Eguraldia_Klik" Margin="10,0,0,0">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Grid>
+                                <Path Data="M17.52,17.52c0-3.32,2.69-6.01,6.01-6.01c0.61,0,1.2,0.09,1.75,0.26c1.13-2.13,3.35-3.58,5.92-3.58c3.08,0,5.69,2.1,6.41,4.95 c0.54-0.14,1.1-0.22,1.69-0.22c3.7,0,6.7,3,6.7,6.7c0,3.7-3,6.7-6.7,6.7H17.52V17.52z" 
+                                       Fill="{StaticResource BrandGold}" 
+                                       Stretch="Uniform" 
+                                       Width="35" Height="35" 
+                                       Margin="3"/>
+                            </Grid>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <Button.ToolTip>
+                        <Border Background="{StaticResource BrandSurface}" CornerRadius="5" Padding="3">
+                            <TextBlock Text="Eguraldia (XML)"
+                                       Foreground="{StaticResource BrandBlack}"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"/>
+                        </Border>
+                    </Button.ToolTip>
+                </Button>
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
                 <Button Grid.Column="0" Background="Transparent" BorderThickness="0" Padding="5" Cursor="Hand" Click="Profil_Klik" HorizontalAlignment="Left">
