@@ -296,30 +296,31 @@ namespace Tpv
                 return;
             }
 
+            var kodea = txtDeskontuKodea.Text?.Trim();
+            if (string.IsNullOrWhiteSpace(kodea))
+            {
+                MessageBox.Show("Deskontu kodea idatzi behar duzu.");
+                return;
+            }
+
             var uneKoTotala = KalkulatuUnekoTotala();
 
             try
             {
-                var deskontuak = await LortuOdooDeskontuakAsync();
-                var deskontuAktiboa = deskontuak.FirstOrDefault(d => d.Aktibo);
+                var deskontua = await CheckOdooDeskontuaAsync(kodea);
+                var deskontatutakoPrezioa = uneKoTotala * (1 - (deskontua.Ehunekoa / 100));
 
-                if (deskontuAktiboa == null)
-                {
-                    MessageBox.Show("Odoo-n ez dago deskontu aktiborik.");
-                    return;
-                }
-
-                var emaitza = await AplikatuOdooDeskontuaAsync(deskontuAktiboa.Id, uneKoTotala);
-                _odooDeskontatutakoTotala = emaitza.DeskontatutakoPrezioa;
-                _odooDeskontuIzena = emaitza.Deskontua ?? string.Empty;
-                txtOdooDeskontua.Text = $"Odoo ({emaitza.Deskontua}): {emaitza.PrezioOriginala:0.00}€ -> {emaitza.DeskontatutakoPrezioa:0.00}€";
+                _odooDeskontatutakoTotala = deskontatutakoPrezioa;
+                _odooDeskontuIzena = $"{deskontua.Kodea} ({deskontua.Ehunekoa:0.##}%)";
+                txtOdooDeskontua.Text = $"Odoo ({_odooDeskontuIzena}): {uneKoTotala:0.00}€ -> {deskontatutakoPrezioa:0.00}€";
                 EguneratuEskaeraLaburpena(false);
 
                 MessageBox.Show(
                     $"Odoo deskontua aplikatuta.\n\n" +
-                    $"Deskontua: {emaitza.Deskontua}\n" +
-                    $"Jatorrizko prezioa: {emaitza.PrezioOriginala:0.00}€\n" +
-                    $"Azken prezioa: {emaitza.DeskontatutakoPrezioa:0.00}€");
+                    $"Kodea: {deskontua.Kodea}\n" +
+                    $"Deskontua: {deskontua.Ehunekoa:0.##}%\n" +
+                    $"Jatorrizko prezioa: {uneKoTotala:0.00}€\n" +
+                    $"Azken prezioa: {deskontatutakoPrezioa:0.00}€");
             }
             catch (Exception ex)
             {
@@ -511,39 +512,46 @@ namespace Tpv
             return client;
         }
 
-        private async Task<List<OdooDeskontuaDto>> LortuOdooDeskontuakAsync()
+        private async Task<OdooDeskontuaKodeaDto> CheckOdooDeskontuaAsync(string kodea)
         {
             using (var client = SortuOdooClient())
             {
-                HttpResponseMessage response = await BidaliOdooJsonRpcAsync(client, "api/deskontuak", new { });
-                var edukia = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
+                var parametroak = new
                 {
-                    throw new InvalidOperationException($"Odoo-k {response.StatusCode} erantzun du: {edukia}");
+                    code = kodea
+                };
+
+                var bideak = new[] { "api/check_discount", "api/get_discount" };
+                string azkenErrorea = null;
+
+                foreach (var bidea in bideak)
+                {
+                    var response = await BidaliOdooJsonRpcAsync(client, bidea, parametroak);
+                    var edukia = await response.Content.ReadAsStringAsync();
+
+                    if (response.StatusCode == HttpStatusCode.NotFound)
+                    {
+                        azkenErrorea = $"Odoo-k ez du {bidea} ruta aurkitu.";
+                        continue;
+                    }
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        throw new InvalidOperationException($"Odoo-k {response.StatusCode} erantzun du: {edukia}");
+                    }
+
+                    var emaitza = DeserializatuOdooEdukia<OdooDeskontuaKodeaDto>(edukia);
+                    if (!string.Equals(emaitza.Status, "success", StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new InvalidOperationException(emaitza.Message ?? "Deskontu kodea ez da baliozkoa.");
+                    }
+
+                    return emaitza;
                 }
 
-                return DeserializatuOdooEdukia<List<OdooDeskontuaDto>>(edukia);
-            }
-        }
-
-        private async Task<OdooDeskontuaEmaitzaDto> AplikatuOdooDeskontuaAsync(int deskontuaId, decimal prezioa)
-        {
-            using (var client = SortuOdooClient())
-            {
-                var response = await BidaliOdooJsonRpcAsync(client, "api/deskontuak/jarri", new
-                {
-                    deskontua_id = deskontuaId,
-                    prezioa
-                });
-                var edukia = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw new InvalidOperationException($"Odoo-k {response.StatusCode} erantzun du: {edukia}");
-                }
-
-                return DeserializatuOdooEdukia<OdooDeskontuaEmaitzaDto>(edukia);
+                throw new InvalidOperationException(
+                    (azkenErrorea ?? "Odoo deskontuen API ez dago erabilgarri.") +
+                    " Egiaztatu 'estatistikak' modulua instalatuta/eguneratuta dagoela eta Odoo berrabiarazita dagoela.");
             }
         }
 
@@ -592,28 +600,19 @@ namespace Tpv
             return token.ToObject<T>();
         }
 
-        private class OdooDeskontuaDto
+        private class OdooDeskontuaKodeaDto
         {
-            [JsonProperty("id")]
-            public int Id { get; set; }
+            [JsonProperty("status")]
+            public string Status { get; set; }
 
-            [JsonProperty("name")]
-            public string Izena { get; set; }
+            [JsonProperty("message")]
+            public string Message { get; set; }
 
-            [JsonProperty("aktibo")]
-            public bool Aktibo { get; set; }
-        }
+            [JsonProperty("code")]
+            public string Kodea { get; set; }
 
-        private class OdooDeskontuaEmaitzaDto
-        {
-            [JsonProperty("prezio_originala")]
-            public decimal PrezioOriginala { get; set; }
-
-            [JsonProperty("deskontatutako_prezioa")]
-            public decimal DeskontatutakoPrezioa { get; set; }
-
-            [JsonProperty("deskontua")]
-            public string Deskontua { get; set; }
+            [JsonProperty("percentage")]
+            public decimal Ehunekoa { get; set; }
         }
     }
 }
