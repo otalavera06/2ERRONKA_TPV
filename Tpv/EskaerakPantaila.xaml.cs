@@ -29,6 +29,7 @@ namespace Tpv
         private decimal? _odooDeskontatutakoTotala;
         private string _odooDeskontuIzena = string.Empty;
         private int _mahaiId;
+        private ZerbitzuaDto _editatzenDenZerbitzua;
 
         public EskaerakPantaila(int mahaiId)
         {
@@ -208,6 +209,43 @@ namespace Tpv
                 return;
             }
 
+            var zerbitzua = EraikiZerbitzuaSortuDto();
+
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri(ApiConfig.ApiBaseUrl + "/");
+                var json = JsonConvert.SerializeObject(zerbitzua);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                HttpResponseMessage response;
+
+                if (_editatzenDenZerbitzua != null)
+                {
+                    response = await client.PutAsync($"zerbitzua/{_editatzenDenZerbitzua.Id}", content);
+                }
+                else
+                {
+                    response = await client.PostAsync("zerbitzua", content);
+                }
+
+                if (response.IsSuccessStatusCode)
+                {
+                    MessageBox.Show(_editatzenDenZerbitzua != null ? "Eskaera ondo eguneratu da!" : "Eskaera ondo gorde da!");
+                    GarbituUnekoEskaera();
+                    await AzkenekoEskaerakKargatu();
+                    _produktuak.Clear();
+                    await EdariakKargatu();
+                }
+                else
+                {
+                    var errorBody = await response.Content.ReadAsStringAsync();
+                    var erroreMezua = string.IsNullOrWhiteSpace(errorBody) ? response.StatusCode.ToString() : errorBody;
+                    MessageBox.Show("Errorea eskaera gordetzean: " + erroreMezua);
+                }
+            }
+        }
+
+        private ZerbitzuaSortuDto EraikiZerbitzuaSortuDto()
+        {
             var zerbitzua = new ZerbitzuaSortuDto
             {
                 Data = DateTime.Now,
@@ -230,30 +268,15 @@ namespace Tpv
             }
 
             zerbitzua.PrezioTotala = _odooDeskontatutakoTotala ?? KalkulatuUnekoTotala();
-           
-            using (var client = new HttpClient())
-            {
-                client.BaseAddress = new Uri(ApiConfig.ApiBaseUrl + "/");
-                var json = JsonConvert.SerializeObject(zerbitzua);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await client.PostAsync("zerbitzua", content);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    MessageBox.Show("Eskaera ondo gorde da!");
-                    lsEskaerak.Items.Clear();
-                    EguneratuEskaeraLaburpena(true);
-                    await AzkenekoEskaerakKargatu();
-                    _produktuak.Clear();
-                    await EdariakKargatu();
-                }
-                else
-                {
-                    var errorBody = await response.Content.ReadAsStringAsync();
-                    var erroreMezua = string.IsNullOrWhiteSpace(errorBody) ? response.StatusCode.ToString() : errorBody;
-                    MessageBox.Show("Errorea eskaera gordetzean: " + erroreMezua);
-                }
-            }
+            return zerbitzua;
+        }
+
+        private void GarbituUnekoEskaera()
+        {
+            _editatzenDenZerbitzua = null;
+            lsEskaerak.Items.Clear();
+            EguneratuEskaeraLaburpena(true);
         }
         private void BtnKendu_Klik(object sender, RoutedEventArgs e)
             {
@@ -268,13 +291,17 @@ namespace Tpv
         {
             if (sender is Button btn && btn.DataContext is DTO.EskaeraDto eskaera)
             {
-                var produktua = new ProduktuaDto
+                var produktua = lsEskaerak.Items
+                    .OfType<ProduktuaDto>()
+                    .FirstOrDefault(p => p.Id == eskaera.ProduktuaId);
+
+                if (produktua == null)
                 {
-                    Id = eskaera.ProduktuaId,
-                    Izena = eskaera.Izena,
-                    Prezioa = eskaera.Prezioa
-                };
-                lsEskaerak.Items.Add(produktua);
+                    MessageBox.Show("Produktu hori ez dago momentuko eskaeran.");
+                    return;
+                }
+
+                lsEskaerak.Items.Remove(produktua);
                 EguneratuEskaeraLaburpena(true);
             }
         }
@@ -465,6 +492,15 @@ namespace Tpv
         {
             if (lsAzkenEskaerak.SelectedItem is DTO.ZerbitzuaDto zerbitzua)
             {
+                if (zerbitzua.Ordainduta || zerbitzua.Eskaerak.Any(eskaera => eskaera.Egoera == 1))
+                {
+                    MessageBox.Show("Zerbitzu hau jada ordainduta dago; ezin da editatu.");
+                    return;
+                }
+
+                _editatzenDenZerbitzua = zerbitzua;
+                lsEskaerak.Items.Clear();
+
                 foreach (var eskaera in zerbitzua.Eskaerak)
                 {
                     var produktua = new ProduktuaDto
