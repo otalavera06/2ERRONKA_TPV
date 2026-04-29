@@ -139,6 +139,8 @@ namespace Tpv
                 var json = await response.Content.ReadAsStringAsync();
                 var arr = JsonConvert.DeserializeObject<JArray>(json);
                 var fakturak = new List<FakturaDto>();
+                var zerbitzuakById = await KargatuZerbitzuakById(client);
+
                 foreach (var it in arr ?? new JArray())
                 {
                     decimal prezio = 0m;
@@ -173,21 +175,56 @@ namespace Tpv
                         Path = (it["Path"] ?? it["path"])?.ToString() ?? string.Empty
                     };
 
-                    
-                    var zerbitzuaResponse = await client.GetAsync($"zerbitzua/{faktura.ZerbitzuaId}");
-                    if (zerbitzuaResponse.IsSuccessStatusCode)
+                    ZerbitzuaDto zerbitzua;
+                    if (zerbitzuakById.TryGetValue(faktura.ZerbitzuaId, out zerbitzua))
                     {
-                        var zerbitzuaJson = await zerbitzuaResponse.Content.ReadAsStringAsync();
-                        var zerbitzua = JsonConvert.DeserializeObject<DTO.ZerbitzuaDto>(zerbitzuaJson);
                         faktura.Data = zerbitzua.Data.ToString("yyyy-MM-dd HH:mm");
-                        faktura.MahaiaIzena = $"Mahaia {zerbitzua.MahaiakId}"; 
-                        faktura.EskaeraXehetasunak = string.Join(", ", zerbitzua.Eskaerak.Select(e => e.Izena));
+                        faktura.MahaiaIzena = zerbitzua.MahaiakId == 6 ? "Barra" : $"Mahaia {zerbitzua.MahaiakId}";
+                        faktura.EskaeraXehetasunak = zerbitzua.Eskaerak != null && zerbitzua.Eskaerak.Any()
+                            ? string.Join(", ", zerbitzua.Eskaerak.Select(e => e.Izena))
+                            : "Ez dago eskaeren xehetasunik";
+                    }
+                    else
+                    {
+                        faktura.MahaiaIzena = "Ez da aurkitu";
+                        faktura.Data = "Ez da aurkitu";
+                        faktura.EskaeraXehetasunak = "Zerbitzua ez da aurkitu";
                     }
 
                     fakturak.Add(faktura);
                 }
                 dgFakturak.ItemsSource = fakturak;
             }
+        }
+
+        private async Task<Dictionary<int, ZerbitzuaDto>> KargatuZerbitzuakById(HttpClient client)
+        {
+            var emaitza = new Dictionary<int, ZerbitzuaDto>();
+
+            for (int mahaiaId = 1; mahaiaId <= 6; mahaiaId++)
+            {
+                try
+                {
+                    var response = await client.GetAsync($"zerbitzua/mahaia/{mahaiaId}");
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        continue;
+                    }
+
+                    var json = await response.Content.ReadAsStringAsync();
+                    var zerrenda = JsonConvert.DeserializeObject<List<ZerbitzuaDto>>(json) ?? new List<ZerbitzuaDto>();
+                    foreach (var zerbitzua in zerrenda)
+                    {
+                        emaitza[zerbitzua.Id] = zerbitzua;
+                    }
+                }
+                catch
+                {
+                    // Fakturak kargatzen jarraitu; txartelak fallback testua erakutsiko du.
+                }
+            }
+
+            return emaitza;
         }
 
         private async void BtnIkusiFaktura_Klik(object sender, RoutedEventArgs e)

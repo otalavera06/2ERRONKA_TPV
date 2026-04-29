@@ -30,6 +30,7 @@ namespace Tpv
         private string _odooDeskontuIzena = string.Empty;
         private int _mahaiId;
         private ZerbitzuaDto _editatzenDenZerbitzua;
+        private readonly Dictionary<int, int> _editatzenHasierakoKantitateak = new Dictionary<int, int>();
 
         public EskaerakPantaila(int mahaiId)
         {
@@ -197,15 +198,16 @@ namespace Tpv
                 .Select(g => new
                 {
                     Produktua = g.First(),
-                    EskatutakoKantitatea = g.Count()
+                    EskatutakoKantitatea = g.Count(),
+                    StockErabilgarria = g.First().Stock + LortuEditatzenHasierakoKantitatea(g.Key)
                 })
-                .FirstOrDefault(x => x.EskatutakoKantitatea > x.Produktua.Stock);
+                .FirstOrDefault(x => !x.Produktua.IsPlatera && x.EskatutakoKantitatea > x.StockErabilgarria);
 
             if (stockFalta != null)
             {
                 MessageBox.Show(
                     $"Ez dago stock nahikorik produktu honentzat: {stockFalta.Produktua.Izena}. " +
-                    $"Eskatuta: {stockFalta.EskatutakoKantitatea}, stock erabilgarria: {stockFalta.Produktua.Stock}");
+                    $"Eskatuta: {stockFalta.EskatutakoKantitatea}, stock erabilgarria: {stockFalta.StockErabilgarria}");
                 return;
             }
 
@@ -275,7 +277,9 @@ namespace Tpv
         private void GarbituUnekoEskaera()
         {
             _editatzenDenZerbitzua = null;
+            _editatzenHasierakoKantitateak.Clear();
             lsEskaerak.Items.Clear();
+            EguneratuEditatzenEgoera();
             EguneratuEskaeraLaburpena(true);
         }
         private void BtnKendu_Klik(object sender, RoutedEventArgs e)
@@ -499,20 +503,55 @@ namespace Tpv
                 }
 
                 _editatzenDenZerbitzua = zerbitzua;
+                _editatzenHasierakoKantitateak.Clear();
+                foreach (var taldea in zerbitzua.Eskaerak.GroupBy(eskaera => eskaera.ProduktuaId))
+                {
+                    _editatzenHasierakoKantitateak[taldea.Key] = taldea.Count();
+                }
+
                 lsEskaerak.Items.Clear();
 
                 foreach (var eskaera in zerbitzua.Eskaerak)
                 {
-                    var produktua = new ProduktuaDto
-                    {
-                        Id = eskaera.ProduktuaId,
-                        Izena = eskaera.Izena,
-                        Prezioa = eskaera.Prezioa
-                    };
+                    var produktua = SortuProduktuaEskaeratik(eskaera);
                     lsEskaerak.Items.Add(produktua);
                 }
+                EguneratuEditatzenEgoera();
                 EguneratuEskaeraLaburpena(true);
             }
+        }
+
+        private ProduktuaDto SortuProduktuaEskaeratik(EskaeraDto eskaera)
+        {
+            var katalogokoProduktua = _produktuak.FirstOrDefault(p => p.Id == eskaera.ProduktuaId);
+            if (katalogokoProduktua != null)
+            {
+                return katalogokoProduktua;
+            }
+
+            return new ProduktuaDto
+            {
+                Id = eskaera.ProduktuaId,
+                Izena = eskaera.Izena,
+                Prezioa = eskaera.Prezioa,
+                Stock = LortuEditatzenHasierakoKantitatea(eskaera.ProduktuaId)
+            };
+        }
+
+        private int LortuEditatzenHasierakoKantitatea(int produktuaId)
+        {
+            int kantitatea;
+            return _editatzenHasierakoKantitateak.TryGetValue(produktuaId, out kantitatea) ? kantitatea : 0;
+        }
+
+        private void EguneratuEditatzenEgoera()
+        {
+            var editatzen = _editatzenDenZerbitzua != null;
+            editatzenBanner.Visibility = editatzen ? Visibility.Visible : Visibility.Collapsed;
+            txtEditatzenInfo.Text = editatzen
+                ? $"#{_editatzenDenZerbitzua.Id} zerbitzua"
+                : string.Empty;
+            txtEskaeraJasoBotoia.Text = editatzen ? "Eguneratu eskaera" : "Eskaera jaso";
         }
 
         private decimal KalkulatuUnekoTotala()
