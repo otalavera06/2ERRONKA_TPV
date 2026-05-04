@@ -242,7 +242,7 @@
                                Foreground="{StaticResource BrandMuted}"
                                Margin="0,0,0,10"
                                TextWrapping="Wrap"/>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <StackPanel x:Name="spDeskontuKodea" Orientation="Horizontal" Margin="0,0,0,10" Visibility="Collapsed">
                         <TextBlock Text="Deskontu kodea:"
                                    VerticalAlignment="Center"
                                    FontSize="14"
@@ -283,7 +283,7 @@
                                         <ImageBrush ImageSource="Irudiak/eskaera.png"/>
                                     </Rectangle.OpacityMask>
                                 </Rectangle>
-                                <TextBlock Text="Odoo deskontua" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Deskontuak" HorizontalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                         <Button Style="{StaticResource EskaerakBotoia}"

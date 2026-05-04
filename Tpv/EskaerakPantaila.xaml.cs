@@ -133,21 +133,13 @@ namespace Tpv
                 var panel = new StackPanel();
                 if (!string.IsNullOrEmpty(p.IrudiaPath))
                 {
-                    var path = p.IrudiaPath.Trim();
-                    if (path.StartsWith("wwwroot/", StringComparison.OrdinalIgnoreCase))
-                    {
-                        path = path.Substring("wwwroot/".Length);
-                    }
-                    path = path.TrimStart('/');
-                    if (!path.StartsWith("irudiak/", StringComparison.OrdinalIgnoreCase))
-                    {
-                        path = "irudiak/" + path;
-                    }
-                    var fullUri = new Uri(_httpClient.BaseAddress, path);
+                    var fullUri = SortuIrudiUri(p.IrudiaPath);
                     var img = new Image
                     {
                         Source = new BitmapImage(fullUri),
-                        Height = 60
+                        Height = 60,
+                        Width = 96,
+                        Stretch = System.Windows.Media.Stretch.UniformToFill
                     };
                     panel.Children.Add(img);
                 }
@@ -327,7 +319,14 @@ namespace Tpv
                 return;
             }
 
-            var kodea = txtDeskontuKodea.Text?.Trim();
+            var leihoa = new OdooDeskontuaLeihoa(txtDeskontuKodea.Text) { Owner = this };
+            if (leihoa.ShowDialog() != true)
+            {
+                return;
+            }
+
+            var kodea = leihoa.Kodea;
+            txtDeskontuKodea.Text = kodea;
             if (string.IsNullOrWhiteSpace(kodea))
             {
                 MessageBox.Show("Deskontu kodea idatzi behar duzu.");
@@ -585,6 +584,28 @@ namespace Tpv
             };
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             return client;
+        }
+
+        private Uri SortuIrudiUri(string irudiaPath)
+        {
+            var path = irudiaPath.Trim();
+            if (Uri.TryCreate(path, UriKind.Absolute, out var absoluteUri))
+            {
+                return absoluteUri;
+            }
+
+            if (path.StartsWith("wwwroot/", StringComparison.OrdinalIgnoreCase))
+            {
+                path = path.Substring("wwwroot/".Length);
+            }
+
+            path = path.TrimStart('/');
+            if (!path.StartsWith("irudiak/", StringComparison.OrdinalIgnoreCase))
+            {
+                path = "irudiak/" + path;
+            }
+
+            return new Uri(_httpClient.BaseAddress, path);
         }
 
         private async Task<OdooDeskontuaKodeaDto> CheckOdooDeskontuaAsync(string kodea)

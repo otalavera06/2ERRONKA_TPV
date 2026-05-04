@@ -14,5 +14,6 @@ namespace Tpv.DTO
         public virtual DateTime Data { get; set; }
         public virtual decimal Prezioa { get; set; }
         public virtual int Egoera { get; set; }
+        public virtual bool IsPlatera { get; set; }
     }
 }
