@@ -109,6 +109,36 @@
                                     <TextBlock Text="{Binding TimeStamp}" Foreground="{StaticResource BrandMuted}" FontSize="11" VerticalAlignment="Bottom"/>
                                 </StackPanel>
                                 <TextBlock Text="{Binding Testua}" Foreground="{StaticResource BrandBlack}" TextWrapping="Wrap"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding TipoMezua}" Value="FILE">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+                                    <Button Content="Ikusi"
+                                            Tag="{Binding}"
+                                            Click="BtnIkusiArxiboa_Click"
+                                            Background="{StaticResource BrandSurface}"
+                                            Foreground="{StaticResource BrandBlack}"
+                                            BorderBrush="{StaticResource BrandGold}"
+                                            BorderThickness="1"
+                                            Padding="10,4"
+                                            Margin="0,0,8,0"
+                                            Cursor="Hand"/>
+                                    <Button Content="Deskargatu"
+                                            Tag="{Binding}"
+                                            Click="BtnDeskargatuArxiboa_Click"
+                                            Background="{StaticResource BrandGold}"
+                                            Foreground="{StaticResource BrandBlack}"
+                                            BorderThickness="0"
+                                            Padding="10,4"
+                                            Cursor="Hand"/>
+                                </StackPanel>
                             </StackPanel>
                         </Grid>
                     </DataTemplate>

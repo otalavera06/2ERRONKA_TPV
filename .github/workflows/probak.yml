@@ -1,0 +1,20 @@
+name: TPV probak
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  probak:
+    runs-on: windows-latest
+    steps:
+      - name: Kodea jaitsi
+        uses: actions/checkout@v4
+
+      - name: .NET prestatu
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Probak exekutatu
+        run: dotnet test "Tpv/Testak/Tpv.Testak.csproj" --verbosity minimal

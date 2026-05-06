@@ -1,26 +1,28 @@
-# TPV - Test de caja negra
+# TPV - Kaxa beltzeko probak
 
-## Objetivo
+## Helburua
 
-Validar el TPV desde el comportamiento visible del usuario, sin depender de la implementacion interna.
+TPVko eskaeren portaera erabiltzailearen ikuspegitik balioztatzea: mahaia edo barra aukeratu, produktuak eta platerak gehitu, stocka kontrolatu, totala kalkulatu, deskontua aplikatu eta editatzen ari den eskaera eguneratu.
 
-## Casos
+## Kasuak
 
-| ID | Funcion | Entrada / accion | Resultado esperado |
+| ID | Funtzioa | Sarrera edo ekintza | Espero den emaitza |
 | --- | --- | --- | --- |
-| TPV-BB-01 | Login | Usuario y contrasena validos | Entra al menu principal y se muestra el logo de Musinelli correctamente. |
-| TPV-BB-02 | Login | Credenciales incorrectas | Se muestra error y no se entra al TPV. |
-| TPV-BB-03 | Eskaerak - productos | Abrir una mesa y pulsar un producto con stock | El producto aparece al momento en "Momentuko eskaera" y el total sube. |
-| TPV-BB-04 | Eskaerak - platos | Abrir la pestana "Platerak" | Cada plato aparece con su imagen cargada desde la API. |
-| TPV-BB-05 | Quitar linea | Pulsar el boton de quitar en una linea | La linea desaparece y el total baja. |
-| TPV-BB-06 | Guardar pedido | Guardar una mesa con productos/platos | El pedido se guarda, aparece en "Azken eskaerak" y el stock se descuenta en la DB. |
-| TPV-BB-07 | Stock insuficiente | Pedir mas unidades que el stock disponible | Se muestra aviso de stock insuficiente y no se guarda el pedido. |
-| TPV-BB-08 | Descuentos | Pulsar "Deskontuak" | Se abre una ventana para introducir el codigo de Odoo. |
-| TPV-BB-09 | Descuento valido | Introducir un codigo valido | El total cambia y se muestra el descuento aplicado. |
-| TPV-BB-10 | Descuento invalido | Introducir un codigo no valido | Se muestra error y el total no se modifica. |
-| TPV-BB-11 | Pago | Seleccionar un servicio no pagado y pulsar "Ordaindu" | El servicio queda pagado, se genera factura y no se puede editar. |
-| TPV-BB-12 | Edicion de pedido | Doble clic en un servicio no pagado | Sus lineas vuelven al pedido actual y se puede actualizar. |
+| TPV-BB-01 | Produktua gehitu | Mahaia ireki eta stocka duen produktu arrunt bat gehitu | Produktua uneko eskaeran agertzen da eta totala produktuaren prezioarekin igotzen da. |
+| TPV-BB-02 | Platera gehitu | Mahaia ireki eta plater bat gehitu | Platera uneko eskaeran agertzen da eta totala plateraren prezioarekin igotzen da. |
+| TPV-BB-03 | Hainbat produktu batu | Produktu eta plater bat baino gehiago gehitu | Totala produktu guztien prezioen batura da. |
+| TPV-BB-04 | Eskaera hutsa | Produkturik gehitu gabe eskaera jasotzen saiatu | Aplikazioak abisua erakusten du eta ez du eskaerarik bidaltzen. |
+| TPV-BB-05 | Stock nahikoa | Produktu baten eskatutako kantitatea stockaren berdina edo txikiagoa da | Eskaera baliozkoa da eta bidaltzeko prest geratzen da. |
+| TPV-BB-06 | Stock gutxiegi | Produktu baten eskatutako kantitatea stocka baino handiagoa da | Aplikazioak stock faltaren abisua erakusten du eta ez du eskaera gordetzen. |
+| TPV-BB-07 | Plateraren stocka | Plater bat gehitu, nahiz eta bere stock lokala 0 izan | Platera ez da stock lokalagatik blokeatzen. |
+| TPV-BB-08 | Barra | Barra aukeratu eta produktu bat eskatu | Sortutako zerbitzuak `MahaiakId = 6` dauka. |
+| TPV-BB-09 | Mahaia | 1etik 5era arteko mahai bat aukeratu eta produktu bat eskatu | Sortutako zerbitzuak aukeratutako mahaiaren IDa dauka. |
+| TPV-BB-10 | Deskontua | Deskontatutako totala aplikatuta dagoenean eskaera eraiki | Zerbitzuaren `PrezioTotala` deskontatutako balioa da. |
+| TPV-BB-11 | Editatzen dagoen eskaera | Lehendik zegoen produktu baten hasierako kantitatea kontuan hartuta eguneratu | Stock erabilgarria hasierako kantitatearekin handitzen da eta eskaera ez da oker blokeatzen. |
+| TPV-BB-12 | Katalogoko produktua berreskuratu | Zerbitzu zahar bat editatzean produktua katalogoan badago | Katalogoko produktu bera erabiltzen da, stock eta datu eguneratuekin. |
+| TPV-BB-13 | Katalogotik kanpoko produktua | Zerbitzu zahar bat editatzean produktua katalogoan ez badago | Produktua eskaerako datuekin sortzen da eta aurreko kantitatea stock erabilgarri gisa erabiltzen da. |
+| TPV-BB-14 | Katalogotik kanpoko platera | Zerbitzu zahar bat editatzean platera katalogoan ez badago | Platera eskaerako datuekin sortzen da eta stock handia esleitzen zaio. |
 
-## Evidencia de ejecucion
+## Proba automatikoak
 
-Estos casos quedan preparados para ejecutarse manualmente durante la defensa. Las comprobaciones de stock se verifican tambien en Gerente, cuya tabla de productos refresca automaticamente cada 3 segundos.
+Kasu hauek `Tpv/Testak/EskaeraKalkulagailuaTest.cs` fitxategian automatizatuta daude. Testek ez dute leihoa irekitzen; eskaeren portaera publikoa egiaztatzen dute datu sarrera eta irteeren bidez.

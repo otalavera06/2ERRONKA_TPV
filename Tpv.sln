@@ -5,6 +5,8 @@ VisualStudioVersion = 17.14.36603.0 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tpv", "Tpv\Tpv.csproj", "{21187688-0506-4A78-B10B-6C61BF27AC19}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tpv.Testak", "Tpv\Testak\Tpv.Testak.csproj", "{A6A08F3B-C922-4F28-A6A7-13FD9D0D7A88}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Elementos de la solución", "Elementos de la solución", "{D107F4C8-89CC-BEA8-D3D7-CA6B7733353D}"
 EndProject
 Global
@@ -17,6 +19,10 @@ Global
 		{21187688-0506-4A78-B10B-6C61BF27AC19}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{21187688-0506-4A78-B10B-6C61BF27AC19}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{21187688-0506-4A78-B10B-6C61BF27AC19}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6A08F3B-C922-4F28-A6A7-13FD9D0D7A88}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6A08F3B-C922-4F28-A6A7-13FD9D0D7A88}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6A08F3B-C922-4F28-A6A7-13FD9D0D7A88}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6A08F3B-C922-4F28-A6A7-13FD9D0D7A88}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

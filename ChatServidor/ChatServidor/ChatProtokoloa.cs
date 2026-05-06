@@ -67,7 +67,7 @@ public static class ChatProtokoloa
     public static string SortuEmojiMezua(TxatRola rola, int mahaiaId, string bidaltzailea, string emoji)
     {
         var rolIzena = rola == TxatRola.Tpv ? "TPV" : "MESA";
-        return $"CHAT|{rolIzena}|{mahaiaId}|{Kodetu(bidaltzailea)}|{Kodetu(emoji)}|EMOJI";
+        return $"CHAT|{rolIzena}|{mahaiaId}|{Kodetu(bidaltzailea)}|{Kodetu(emoji)}||EMOJI";
     }
 
     public static string SortuFitxategiMezua(TxatRola rola, int mahaiaId, string bidaltzailea, string fitxategiIzena, string fitxategiDataBes64)

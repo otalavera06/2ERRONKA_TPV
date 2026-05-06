@@ -140,6 +140,7 @@
     <Compile Include="DTO\PlateraDTO.cs" />
     <Compile Include="DTO\ZerbitzuaDto.cs" />
     <Compile Include="DTO\ZerbitzuaSortuDto.cs" />
+    <Compile Include="EskaeraKalkulagailua.cs" />
     <Compile Include="ErreserbaEguneratuPantaila.xaml.cs">
       <DependentUpon>ErreserbaEguneratuPantaila.xaml</DependentUpon>
     </Compile>

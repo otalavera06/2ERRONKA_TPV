@@ -185,17 +185,9 @@ namespace Tpv
             }
 
             var hautatutakoProduktuak = lsEskaerak.Items.OfType<ProduktuaDto>().ToList();
-            var stockFalta = hautatutakoProduktuak
-                .GroupBy(p => p.Id)
-                .Select(g => new
-                {
-                    Produktua = g.First(),
-                    EskatutakoKantitatea = g.Count(),
-                    StockErabilgarria = g.First().Stock + LortuEditatzenHasierakoKantitatea(g.Key)
-                })
-                .FirstOrDefault(x => !x.Produktua.IsPlatera && x.EskatutakoKantitatea > x.StockErabilgarria);
+            var stockFalta = EskaeraKalkulagailua.BalidatuStocka(hautatutakoProduktuak, _editatzenHasierakoKantitateak);
 
-            if (stockFalta != null)
+            if (!stockFalta.Nahikoa)
             {
                 MessageBox.Show(
                     $"Ez dago stock nahikorik produktu honentzat: {stockFalta.Produktua.Izena}. " +
@@ -240,30 +232,10 @@ namespace Tpv
 
         private ZerbitzuaSortuDto EraikiZerbitzuaSortuDto()
         {
-            var zerbitzua = new ZerbitzuaSortuDto
-            {
-                Data = DateTime.Now,
-                MahaiakId = _mahaiId,
-                PrezioTotala = 0,
-                Eskaerak = new List<EskaerakSortuDto>()
-            };
-
-            foreach (ProduktuaDto p in lsEskaerak.Items)
-            {
-                zerbitzua.Eskaerak.Add(new EskaerakSortuDto
-                {
-                    ProduktuaId = p.Id,
-                    Izena = p.Izena,
-                    Prezioa = p.Prezioa,
-                    Data = DateTime.Now,
-                    Egoera = 0,
-                    IsPlatera = p.IsPlatera
-                });
-            }
-
-            zerbitzua.PrezioTotala = _odooDeskontatutakoTotala ?? KalkulatuUnekoTotala();
-
-            return zerbitzua;
+            return EskaeraKalkulagailua.EraikiZerbitzua(
+                lsEskaerak.Items.OfType<ProduktuaDto>(),
+                _mahaiId,
+                _odooDeskontatutakoTotala);
         }
 
         private void GarbituUnekoEskaera()
@@ -362,8 +334,7 @@ namespace Tpv
         {
             if (lsAzkenEskaerak.SelectedItem is ZerbitzuaDto vm)
             {
-                var eskaera = vm.Eskaerak?.FirstOrDefault();
-                if (eskaera?.Egoera == 1)
+                if (vm.Ordainduta)
                 {
                     MessageBox.Show("Zerbitzu honen eskaerak jada ordainduta daude!");
                     return;
@@ -495,7 +466,7 @@ namespace Tpv
         {
             if (lsAzkenEskaerak.SelectedItem is DTO.ZerbitzuaDto zerbitzua)
             {
-                if (zerbitzua.Ordainduta || zerbitzua.Eskaerak.Any(eskaera => eskaera.Egoera == 1))
+                if (zerbitzua.Ordainduta)
                 {
                     MessageBox.Show("Zerbitzu hau jada ordainduta dago; ezin da editatu.");
                     return;
@@ -522,19 +493,10 @@ namespace Tpv
 
         private ProduktuaDto SortuProduktuaEskaeratik(EskaeraDto eskaera)
         {
-            var katalogokoProduktua = _produktuak.FirstOrDefault(p => p.Id == eskaera.ProduktuaId);
-            if (katalogokoProduktua != null)
-            {
-                return katalogokoProduktua;
-            }
-
-            return new ProduktuaDto
-            {
-                Id = eskaera.ProduktuaId,
-                Izena = eskaera.Izena,
-                Prezioa = eskaera.Prezioa,
-                Stock = LortuEditatzenHasierakoKantitatea(eskaera.ProduktuaId)
-            };
+            return EskaeraKalkulagailua.SortuProduktuaEskaeratik(
+                eskaera,
+                _produktuak,
+                LortuEditatzenHasierakoKantitatea(eskaera.ProduktuaId));
         }
 
         private int LortuEditatzenHasierakoKantitatea(int produktuaId)
@@ -555,7 +517,7 @@ namespace Tpv
 
         private decimal KalkulatuUnekoTotala()
         {
-            return lsEskaerak.Items.OfType<ProduktuaDto>().Sum(p => p.Prezioa);
+            return EskaeraKalkulagailua.KalkulatuTotala(lsEskaerak.Items.OfType<ProduktuaDto>());
         }
 
         private void EguneratuEskaeraLaburpena(bool garbituOdooEmaitza = false)

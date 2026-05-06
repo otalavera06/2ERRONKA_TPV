@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -266,21 +267,23 @@ namespace Tpv
         {
             if (lstMezuak.SelectedItem is Mezua mezua && mezua.TipoMezua == "FILE" && !string.IsNullOrWhiteSpace(mezua.FitxategiDataBase64))
             {
-                var dialog = new SaveFileDialog();
-                dialog.FileName = string.IsNullOrWhiteSpace(mezua.FitxategiIzena) ? "fitxategia" : mezua.FitxategiIzena;
-                var result = dialog.ShowDialog();
-                if (result == true)
-                {
-                    try
-                    {
-                        byte[] data = Convert.FromBase64String(mezua.FitxategiDataBase64);
-                        File.WriteAllBytes(dialog.FileName, data);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show("Errorea fitxategia gordetzean: " + ex.Message);
-                    }
-                }
+                DeskargatuArxiboa(mezua);
+            }
+        }
+
+        private void BtnIkusiArxiboa_Click(object sender, RoutedEventArgs e)
+        {
+            if ((sender as Button)?.Tag is Mezua mezua)
+            {
+                IrekiArxiboa(mezua);
+            }
+        }
+
+        private void BtnDeskargatuArxiboa_Click(object sender, RoutedEventArgs e)
+        {
+            if ((sender as Button)?.Tag is Mezua mezua)
+            {
+                DeskargatuArxiboa(mezua);
             }
         }
 
@@ -332,6 +335,52 @@ namespace Tpv
             }
         }
 
+        private void DeskargatuArxiboa(Mezua mezua)
+        {
+            if (mezua == null || string.IsNullOrWhiteSpace(mezua.FitxategiDataBase64)) return;
+
+            var dialog = new SaveFileDialog();
+            dialog.FileName = string.IsNullOrWhiteSpace(mezua.FitxategiIzena) ? "fitxategia" : mezua.FitxategiIzena;
+            var result = dialog.ShowDialog();
+            if (result == true)
+            {
+                GordetuArxiboa(mezua, dialog.FileName);
+            }
+        }
+
+        private void IrekiArxiboa(Mezua mezua)
+        {
+            if (mezua == null || string.IsNullOrWhiteSpace(mezua.FitxategiDataBase64)) return;
+
+            try
+            {
+                var fileName = string.IsNullOrWhiteSpace(mezua.FitxategiIzena) ? "fitxategia" : mezua.FitxategiIzena;
+                var tempPath = Path.Combine(Path.GetTempPath(), $"tpv_chat_{Guid.NewGuid()}_{fileName}");
+                if (!GordetuArxiboa(mezua, tempPath)) return;
+
+                Process.Start(new ProcessStartInfo(tempPath) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Errorea fitxategia irekitzean: " + ex.Message);
+            }
+        }
+
+        private bool GordetuArxiboa(Mezua mezua, string path)
+        {
+            try
+            {
+                byte[] data = Convert.FromBase64String(mezua.FitxategiDataBase64);
+                File.WriteAllBytes(path, data);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Errorea fitxategia gordetzean: " + ex.Message);
+                return false;
+            }
+        }
+
         private void ScrollToBottom()
         {
             if (lstMezuak.Items.Count > 0)
@@ -364,7 +413,12 @@ namespace Tpv
 
         private string BuildTpvChatMessage(int mahaiaId, string text, string tipoMezua = "TEXT")
         {
-            return $"CHAT|TPV|{mahaiaId}|{Encode("TPV")}|{Encode(text)}|{tipoMezua}";
+            var testuKodetua = Encode(text);
+            if (tipoMezua == "TEXT")
+            {
+                return $"CHAT|TPV|{mahaiaId}|{Encode("TPV")}|{testuKodetua}|TEXT";
+            }
+            return $"CHAT|TPV|{mahaiaId}|{Encode("TPV")}|{testuKodetua}||{tipoMezua}";
         }
 
         private string BuildTpvFileMessage(int mahaiaId, string arxiboIzena, string arxiboCifratua)
