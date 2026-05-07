@@ -6,7 +6,7 @@ namespace Tpv
     internal static class ApiConfig
     {
         private static readonly string BaseUrlValue =
-            (ConfigurationManager.AppSettings["ApiBaseUrl"] ?? "http://localhost:5005").TrimEnd('/');
+            (ConfigurationManager.AppSettings["ApiBaseUrl"] ?? "http://192.168.10.5:5093").TrimEnd('/');
 
         public static string BaseUrl => BaseUrlValue;
         public static string ApiBaseUrl => BaseUrlValue + "/api";

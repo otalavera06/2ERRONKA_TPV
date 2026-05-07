@@ -1,11 +1,12 @@
-using NHibernate.Linq;
+using Newtonsoft.Json;
 using System;
 using System.Drawing;
 using System.IO;
-using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Text;
 using System.Windows.Forms;
-using Tpv.Modeloak;
-using Tpv.Modeloak.Tpv.Modeloak;
+using Tpv.DTO;
 
 namespace Tpv
 {
@@ -170,7 +171,7 @@ namespace Tpv
             );
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private async void button1_Click(object sender, EventArgs e)
         {
             string erabiltzailea = textBox1.Text.Trim();
             string pasahitza = textBox2.Text.Trim();
@@ -182,31 +183,51 @@ namespace Tpv
                 return;
             }
 
+            var loginRequest = new
+            {
+                erabiltzailea,
+                pasahitza,
+            };
+
             try
             {
-                using (var session = NHibernateHelper.OpenSession())
+                using (var client = new HttpClient())
                 {
-                    var erabiltzaileObj = session.Query<Erabiltzailea>()
-                        .FirstOrDefault(u => u.erabiltzailea == erabiltzailea &&
-                                             u.pasahitza == pasahitza);
+                    var url = $"{ApiConfig.ApiBaseUrl}/langileak/login";
+                    var json = JsonConvert.SerializeObject(loginRequest);
+                    var content = new StringContent(json, Encoding.UTF8, "application/json");
+                    var erantzuna = await client.PostAsync(url, content);
 
-                    if (erabiltzaileObj != null)
-                    {
-                        MessageBox.Show("Ongi etorri, " + erabiltzaileObj.erabiltzailea + "!");
-                    }
-                    else
+                    if (erantzuna.StatusCode == HttpStatusCode.Unauthorized)
                     {
                         MessageBox.Show("Erabiltzailea edo pasahitza okerra da.");
                         GarbituEremuak();
+                        return;
                     }
+
+                    if (!erantzuna.IsSuccessStatusCode)
+                    {
+                        MessageBox.Show("Errorea login egitean.");
+                        GarbituEremuak();
+                        return;
+                    }
+
+                    var jsonResponse = await erantzuna.Content.ReadAsStringAsync();
+                    var erabiltzaileObj = JsonConvert.DeserializeObject<LangileakDto>(jsonResponse);
+
+                    if (erabiltzaileObj == null)
+                    {
+                        MessageBox.Show("Errorea login egitean.");
+                        GarbituEremuak();
+                        return;
+                    }
+
+                    MessageBox.Show("Ongi etorri, " + erabiltzaileObj.Erabiltzailea + "!");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    "Errorea datu-basearekin konektatzean: " +
-                    ex.Message + Environment.NewLine +
-                    ex.InnerException?.Message);
+                MessageBox.Show("Errorea APIarekin konektatzean: " + ex.Message);
                 GarbituEremuak();
             }
         }

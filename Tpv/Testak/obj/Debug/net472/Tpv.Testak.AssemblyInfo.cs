@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Tpv.Testak")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1e52d417ed01103403fbfb21ea4355944a6853ab")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8900837d30721b65cecf3d8a2fd11298bac1dfb5")]
 [assembly: System.Reflection.AssemblyProductAttribute("Tpv.Testak")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Tpv.Testak")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
