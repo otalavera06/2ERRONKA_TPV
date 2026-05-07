@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Configuration;
 using System.ComponentModel;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,8 +20,8 @@ namespace Tpv
 {
     public partial class TxatLeihoa : Window
     {
-        private const string ChatHost = "127.0.0.1";
-        private const int ChatPort = 5555;
+        private static readonly string ChatHost = ConfigurationManager.AppSettings["ChatHost"] ?? "192.168.10.5";
+        private static readonly int ChatPort = int.TryParse(ConfigurationManager.AppSettings["ChatPort"], out var chatPort) ? chatPort : 5555;
         private static readonly TimeSpan ConnectTimeout = TimeSpan.FromSeconds(5);
 
         private TcpClient socketa;
@@ -62,7 +63,7 @@ namespace Tpv
                 {
                     try { socketa.Close(); } catch { }
                     socketa = null;
-                    MessageBox.Show("Ezin izan da ChatServidor-era konektatu. Egiaztatu zerbitzaria martxan dagoela TPV honetan.");
+                    MessageBox.Show($"Ezin izan da ChatServidor-era konektatu. Egiaztatu zerbitzaria martxan dagoela {ChatHost}:{ChatPort} helbidean.");
                     Close();
                     return;
                 }
