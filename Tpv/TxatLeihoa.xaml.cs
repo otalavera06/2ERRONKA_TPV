@@ -28,6 +28,8 @@ namespace Tpv
         private StreamReader irakurlea;
         private StreamWriter idazlea;
         public ObservableCollection<Contact> Contacts { get; set; }
+        private static readonly object ChatLogLock = new object();
+        private static readonly string ChatLogPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "chat_codificacion_log.txt");
         
         private Contact _selectedContact;
 
@@ -140,12 +142,16 @@ namespace Tpv
             }
             else if (tipoMezua == "EMOJI")
             {
-                var emoji = Decode(zatiak[4]);
+                var testuKodetua = zatiak[4];
+                var emoji = Decode(testuKodetua);
+                LogIncomingChat("TPV", "Mugikorra", testuKodetua, emoji, tipoMezua);
                 contact.AddMessage(emoji, false, senderName, "EMOJI");
             }
             else
             {
-                var content = Decode(zatiak[4]);
+                var testuKodetua = zatiak[4];
+                var content = Decode(testuKodetua);
+                LogIncomingChat("TPV", "Mugikorra", testuKodetua, content, "TEXT");
                 contact.AddMessage(content, false, senderName, "TEXT");
             }
 
@@ -415,6 +421,7 @@ namespace Tpv
         private string BuildTpvChatMessage(int mahaiaId, string text, string tipoMezua = "TEXT")
         {
             var testuKodetua = Encode(text);
+            LogOutgoingChat("TPV", text, testuKodetua, tipoMezua);
             if (tipoMezua == "TEXT")
             {
                 return $"CHAT|TPV|{mahaiaId}|{Encode("TPV")}|{testuKodetua}|TEXT";
@@ -451,6 +458,54 @@ namespace Tpv
                 Console.WriteLine($"Errorea deszifratzean: {ex.Message}");
                 return string.Empty;
             }
+        }
+
+        private static void LogOutgoingChat(string aplikazioa, string jatorrizkoa, string kodetua, string tipoMezua)
+        {
+            WriteChatLog(
+                "[CHAT KODIFIKAZIOA]",
+                $"Jatorrizko aplikazioa: {aplikazioa}",
+                $"Mezu mota: {tipoMezua}",
+                $"1. Jatorrizko mezua ({aplikazioa}-tik bidalia): {CleanForLog(jatorrizkoa)}",
+                $"2. Mezua kodetuta: {CleanForLog(kodetua)}");
+        }
+
+        private static void LogIncomingChat(string hartzailea, string remitentea, string jasotakoKodetua, string deskodetua, string tipoMezua)
+        {
+            WriteChatLog(
+                "[CHAT DESKODIFIKAZIOA]",
+                $"Aplikazio hartzailea: {hartzailea}",
+                $"Aplikazio remitentea: {remitentea}",
+                $"Mezu mota: {tipoMezua}",
+                $"3. Beste aplikaziora iritsitako mezu kodetua: {CleanForLog(jasotakoKodetua)}",
+                $"4. Mezua deskodetuta (jatorrizkoaren berdina izan behar du): {CleanForLog(deskodetua)}");
+        }
+
+        private static void WriteChatLog(params string[] lines)
+        {
+            try
+            {
+                lock (ChatLogLock)
+                {
+                    var builder = new StringBuilder();
+                    builder.AppendLine($"===== {DateTime.Now:yyyy-MM-dd HH:mm:ss} =====");
+                    foreach (var line in lines)
+                    {
+                        builder.AppendLine(line);
+                    }
+                    builder.AppendLine();
+                    File.AppendAllText(ChatLogPath, builder.ToString(), Encoding.UTF8);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Errorea chat loga idaztean: {ex.Message}");
+            }
+        }
+
+        private static string CleanForLog(string value)
+        {
+            return (value ?? string.Empty).Replace("\r", "\\r").Replace("\n", "\\n");
         }
 
         private string BuildInitials(string name, int mahaiaId)
