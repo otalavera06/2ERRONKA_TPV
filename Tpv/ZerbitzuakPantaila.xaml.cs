@@ -14,6 +14,8 @@ namespace Tpv
 {
     public partial class ZerbitzuakPantaila : Window
     {
+        private const int DemoMahaiaId = 4;
+
         public ZerbitzuakPantaila()
         {
             InitializeComponent();
@@ -94,7 +96,7 @@ namespace Tpv
                             if (azkenZerbitzua != null && !azkenZerbitzua.Ordainduta)
                             {
                                 bool forceClose = false;
-                                if (i != 6) // Barra ez da ixten
+                                if (i != 6 && i != DemoMahaiaId) // Barra eta demo mahaia ez dira ixten
                                 {
                                     if (now.TimeOfDay >= new TimeSpan(16, 30, 0) && now.TimeOfDay < new TimeSpan(20, 0, 0))
                                     {
@@ -125,7 +127,7 @@ namespace Tpv
                         bool isReserved = false;
                         bool isClosed = false;
                         
-                        if (!isOccupied && i != 6) // Barra ez da erreserbatzen
+                        if (!isOccupied && i != 6 && i != DemoMahaiaId) // Barra eta demo mahaia ez dira blokeatzen
                         {
                             bool hasLunch = lunchReservations.Contains(i);
                             bool hasDinner = dinnerReservations.Contains(i);
